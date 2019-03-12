@@ -4,6 +4,17 @@ namespace varileg_lowlevel_controller {
 
 bool EthercatNode::init()
 {
+  ethercat_bus_ = std::make_shared<soem_interface::EthercatBusBase>("eth0");
+
+  epos_ethercat_slave_ = std::make_shared<EposEthercatSlave>("epos1", ethercat_bus_, 1);
+
+  ethercat_bus_->addSlave(epos_ethercat_slave_);
+
+  ethercat_bus_->startup();
+
+  ethercat_bus_->setState(EC_STATE_OPERATIONAL);
+  ethercat_bus_->waitForState(EC_STATE_OPERATIONAL);
+
   MELO_INFO("init called");
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
