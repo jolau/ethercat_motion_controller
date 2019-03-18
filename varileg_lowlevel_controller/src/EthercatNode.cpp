@@ -4,7 +4,9 @@ namespace varileg_lowlevel_controller {
 
 bool EthercatNode::init()
 {
-  ethercat_bus_ = std::make_shared<soem_interface::EthercatBusBase>("eth0");
+  MELO_INFO("init called");
+
+  ethercat_bus_ = std::make_shared<soem_interface::EthercatBusBase>("ens9");
 
   epos_ethercat_slave_ = std::make_shared<EposEthercatSlave>("epos1", ethercat_bus_, 1);
 
@@ -15,7 +17,10 @@ bool EthercatNode::init()
   ethercat_bus_->setState(EC_STATE_OPERATIONAL);
   ethercat_bus_->waitForState(EC_STATE_OPERATIONAL);
 
-  MELO_INFO("init called");
+  constexpr double defaultWorkerTimeStep = .1;
+  constexpr int priority = 10;
+  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
   return true;
@@ -33,6 +38,11 @@ bool EthercatNode::update(const any_worker::WorkerEvent& event)
   // called by the worker which is automatically set up if rosparam standalone == True.
   // The frequency is defined in the time_step rosparam.
   MELO_INFO("update called");
+
+  ethercat_bus_->updateRead();
+
+  ethercat_bus_->updateWrite();
+
   return true;
 }
 

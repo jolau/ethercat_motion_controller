@@ -8,6 +8,8 @@
 // soem_interface
 #include <soem_interface/EthercatBusBase.hpp>
 #include <soem_interface/EthercatSlaveBase.hpp>
+#include "RxPdo.hpp"
+#include "TxPdo.hpp"
 
 namespace varileg_lowlevel_controller {
  class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -21,8 +23,14 @@ namespace varileg_lowlevel_controller {
    void updateWrite() override;
    void shutdown() override;
 
+   std::string getName() const override;
+   PdoInfo getCurrentPdoInfo() const override;
+
   private:
    const std::string name_;
+   TxPdo tx_pdo_;
+   bool ready_;
+   PdoInfo pdoInfo_;
 };
 
  using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;
