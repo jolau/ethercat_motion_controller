@@ -17,7 +17,7 @@ bool EthercatNode::init()
   ethercat_bus_->setState(EC_STATE_OPERATIONAL);
   ethercat_bus_->waitForState(EC_STATE_OPERATIONAL);
 
-  constexpr double defaultWorkerTimeStep = .1;
+  constexpr double defaultWorkerTimeStep = .01;
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);

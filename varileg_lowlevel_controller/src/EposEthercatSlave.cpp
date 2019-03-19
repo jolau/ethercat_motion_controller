@@ -44,10 +44,10 @@ bool EposEthercatSlave::startup() {
     MELO_WARN("not entered pre op");
   }
 
-/*  bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x00);
+  //bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x00);
 
   //bus_->sendSdoWrite(address_, 0x1601, 0x01, true, 0x60400010);
-  bus_->sendSdoWrite(address_, 0x1600, 0x02, true, 0x60600008);
+  //bus_->sendSdoWrite(address_, 0x1600, 0x02, true, 0x60600008);
   //bus_->sendSdoWrite(address_, 0x1600, 0x03, true, 0x60600008);
 
  /* bus_->sendSdoWrite(address_, 0x1601, 0x03, true, 0x60);
@@ -55,7 +55,7 @@ bool EposEthercatSlave::startup() {
   bus_->sendSdoWrite(address_, 0x1601, 0x05, true, 0x60600008);
 */
 
-  /*bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x02);*/
+  //bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x02);*/
 
   // TODO: better return
 
@@ -159,8 +159,8 @@ void EposEthercatSlave::updateWrite() {
     rxPdo.ControlWord = controlword;
   } else {
     MELO_INFO_STREAM("Actual Position: " << tx_pdo_.PositionActualValue);
-    if (tx_pdo_.PositionActualValue < 500000) {
-      rxPdo.TargetPosition = 501000;
+    if (tx_pdo_.PositionActualValue < 5000) {
+      rxPdo.TargetPosition = 5100;
     } else {
       rxPdo.TargetPosition = 0;
     }
