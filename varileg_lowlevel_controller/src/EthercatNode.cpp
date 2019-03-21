@@ -8,9 +8,11 @@ bool EthercatNode::init()
 
   ethercat_bus_ = std::make_shared<soem_interface::EthercatBusBase>("ens9");
 
-  epos_ethercat_slave_ = std::make_shared<EposEthercatSlave>("epos1", ethercat_bus_, 1);
+  epos_ethercat_slave_one_ = std::make_shared<EposEthercatSlave>("epos1", ethercat_bus_, 1);
+  eposEthercatSlaveTwo_ = std::make_shared<EposEthercatSlave>("epos1", ethercat_bus_, 2);
 
-  ethercat_bus_->addSlave(epos_ethercat_slave_);
+  ethercat_bus_->addSlave(epos_ethercat_slave_one_);
+  ethercat_bus_->addSlave(eposEthercatSlaveTwo_);
 
   ethercat_bus_->startup();
 

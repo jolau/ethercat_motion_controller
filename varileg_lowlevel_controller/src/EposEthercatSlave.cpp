@@ -44,38 +44,11 @@ bool EposEthercatSlave::startup() {
     MELO_WARN("not entered pre op");
   }
 
-  //bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x00);
-
-  //bus_->sendSdoWrite(address_, 0x1601, 0x01, true, 0x60400010);
-  //bus_->sendSdoWrite(address_, 0x1600, 0x02, true, 0x60600008);
-  //bus_->sendSdoWrite(address_, 0x1600, 0x03, true, 0x60600008);
-
- /* bus_->sendSdoWrite(address_, 0x1601, 0x03, true, 0x60);
-  bus_->sendSdoWrite(address_, 0x1601, 0x04, true, 0x60B20010);
-  bus_->sendSdoWrite(address_, 0x1601, 0x05, true, 0x60600008);
-*/
-
-  //bus_->sendSdoWrite(address_, 0x1600, 0x00, true, 0x02);*/
-
   // TODO: better return
-
- /* bus_->sendSdoWrite(address_, 0x6040, 0x00, true, 0x0208);
-
-  uint16 statusword = 0;
-  bus_->sendSdoRead(address_, 0x6041, 0x00, false, statusword);
-  MELO_INFO_STREAM("Status Word: " << static_cast<int>(statusword));
-
-  // PDO mapping
-  bus_->sendSdoWrite(address_, 0x1c12, 0x00, true, 0x00);
-  bus_->sendSdoWrite(address_, 0x1c12, 0x01, true, 0x1602);
-  bus_->sendSdoWrite(address_, 0x1c12, 0x00, true, 0x01);
-
-  bus_->sendSdoWrite(address_, 0x1c13, 0x00, true, 0x00);
-  bus_->sendSdoWrite(address_, 0x1c13, 0x01, true, 0x1a02);
-  bus_->sendSdoWrite(address_, 0x1c13, 0x00, true, 0x01);*/
 
   // set mode to CSP
   bus_->sendSdoWrite(address_, 0x6060, 0x00, true, 0X08);
+
 
   // get mode
   int8_t mode = 0;

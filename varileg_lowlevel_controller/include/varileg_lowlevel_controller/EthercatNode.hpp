@@ -28,7 +28,8 @@ class EthercatNode : public any_node::Node {
 
  private:
   soem_interface::EthercatBusBasePtr ethercat_bus_;
-  EposEthercatSlavePtr epos_ethercat_slave_;
+  EposEthercatSlavePtr epos_ethercat_slave_one_;
+  EposEthercatSlavePtr eposEthercatSlaveTwo_;
 };
 
 }
