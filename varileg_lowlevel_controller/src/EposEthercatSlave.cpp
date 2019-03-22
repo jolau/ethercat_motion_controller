@@ -2,6 +2,8 @@
 // Created by jolau on 05.03.19.
 //
 
+#include <varileg_lowlevel_controller/EposEthercatSlave.hpp>
+
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
 
 #define _BV(bit) 				(1 << (bit))
@@ -36,6 +38,14 @@ EposEthercatSlave::EposEthercatSlave(const std::string &name,
   pdoInfo_.txPdoSize_ = sizeof(TxPdo);
   pdoInfo_.moduleId_ = 0x00119800;
 
+}
+
+std::string EposEthercatSlave::getName() const {
+  return name_;
+}
+
+soem_interface::EthercatSlaveBase::PdoInfo EposEthercatSlave::getCurrentPdoInfo() const {
+  return pdoInfo_;
 }
 
 bool EposEthercatSlave::startup() {
@@ -114,8 +124,6 @@ int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord)
   return _enable;;
 }
 
-
-
 void EposEthercatSlave::updateWrite() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -146,17 +154,18 @@ void EposEthercatSlave::updateWrite() {
   bus_->writeRxPdo(address_, rxPdo);
 }
 
+uint8_t EposEthercatSlave::readNodeId() {
+  uint8_t nodeId = 0;
+  if(!bus_->sendSdoRead(address_, 0x2000, 0x00, false, nodeId)) {
+    MELO_ERROR_STREAM("Could not read NodeID of " << name_);
+  }
+  return nodeId;
+}
+
 void EposEthercatSlave::shutdown() {
   RxPdo rxPdo;
   rxPdo.ControlWord = 0;
   bus_->writeRxPdo(address_,rxPdo);
-}
-
-std::string EposEthercatSlave::getName() const {
-  return name_;
-}
-soem_interface::EthercatSlaveBase::PdoInfo EposEthercatSlave::getCurrentPdoInfo() const {
-  return pdoInfo_;
 }
 
 }

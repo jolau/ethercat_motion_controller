@@ -2,7 +2,7 @@
 
 #include <std_msgs/String.h>
 
-#include "soem_interface/EthercatBusBase.hpp"
+#include "VarilegEthercatBusManager.hpp"
 #include "EposEthercatSlave.hpp"
 
 namespace varileg_lowlevel_controller {
@@ -27,9 +27,12 @@ class EthercatNode : public any_node::Node {
   void subscriberCallback(const std_msgs::StringConstPtr &msg);
 
  private:
-  soem_interface::EthercatBusBasePtr ethercat_bus_;
-  EposEthercatSlavePtr epos_ethercat_slave_one_;
-  EposEthercatSlavePtr eposEthercatSlaveTwo_;
+  VarilegEthercatBusManagerPtr busManager_;
+  std::map<std::string, EposEthercatSlavePtr> eposEthercatSlaves_;
+  std::map<std::string, int> jointName2NodeIdMap_;
+  std::array<EposEthercatSlavePtr, 4> setupBusManager();
+
+  bool mapEpos2Joint(EposEthercatSlavePtr eposEthercatSlave);
 };
 
 }
