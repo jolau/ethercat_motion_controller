@@ -4,12 +4,13 @@
 
 #include "VarilegEthercatBusManager.hpp"
 #include "EposEthercatSlave.hpp"
+#include "soem_interface/EthercatBusBase.hpp"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
  public:
   EthercatNode() = delete; // constructor needs to take a shared_ptr to a ros::Nodehandle instance.
-  EthercatNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh) {
+  EthercatNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh), busManager_(std::make_shared<VarilegEthercatBusManager>()) {
   }
 
   ~EthercatNode() override {
@@ -32,7 +33,7 @@ class EthercatNode : public any_node::Node {
   std::map<std::string, int> jointName2NodeIdMap_;
   std::array<EposEthercatSlavePtr, 4> setupBusManager();
 
-  bool mapEpos2Joint(EposEthercatSlavePtr eposEthercatSlave);
+  bool mapEpos2Joint(EposEthercatSlavePtr &eposEthercatSlave);
 };
 
 }

@@ -1,20 +1,25 @@
 #include "varileg_lowlevel_controller/EthercatNode.hpp"
 
+
 namespace varileg_lowlevel_controller {
 
-bool EthercatNode::init()
-{
+bool EthercatNode::init() {
   MELO_INFO("init called");
 
   jointName2NodeIdMap_ = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
 
+  for (auto &pair : jointName2NodeIdMap_) {
+    MELO_INFO_STREAM("key: " << pair.first << " value: " << pair.second)
+  }
+
   std::array<EposEthercatSlavePtr, 4> unmappedEposEthercatSlaves = setupBusManager();
 
+  MELO_INFO_STREAM("before bus startup");
   if(!busManager_->startupAllBuses(true)) {
     MELO_ERROR("Startup of all buses failed.");
     return false;
   }
-
+  MELO_INFO_STREAM("after bus startup");
 
   for(EposEthercatSlavePtr eposEthercatSlave : unmappedEposEthercatSlaves) {
     if(!mapEpos2Joint(eposEthercatSlave)) {
@@ -31,15 +36,15 @@ bool EthercatNode::init()
   return true;
 }
 
-bool EthercatNode::mapEpos2Joint(EposEthercatSlavePtr eposEthercatSlave) {
+bool EthercatNode::mapEpos2Joint(EposEthercatSlavePtr &eposEthercatSlave) {
   uint8_t nodeId = eposEthercatSlave->readNodeId();
 
-  for(auto& pair : jointName2NodeIdMap_) {
-      if(pair.second == nodeId) {
-        eposEthercatSlaves_.insert(std::make_pair(pair.first, eposEthercatSlave));
-        return true;
-      }
+  for (auto &pair : jointName2NodeIdMap_) {
+    if (pair.second == nodeId) {
+      eposEthercatSlaves_.insert(std::make_pair(pair.first, eposEthercatSlave));
+      return true;
     }
+  }
 
   MELO_ERROR_STREAM("Unmapped EPOS EtherCAT slave with NodeID found: " << nodeId);
   return false;
@@ -68,8 +73,7 @@ std::array<EposEthercatSlavePtr, 4> EthercatNode::setupBusManager() {
   return unmappedEposEthercatSlaves;
 }
 
-void EthercatNode::cleanup()
-{
+void EthercatNode::cleanup() {
   // this function is called when the node is requested to shut down, _after_ the ros spinners and workers were stopped
   // no need to stop workers which are started with addWorker(..) function
   MELO_INFO("cleanup called");
@@ -77,8 +81,7 @@ void EthercatNode::cleanup()
   busManager_->shutdownAllBuses();
 }
 
-bool EthercatNode::update(const any_worker::WorkerEvent& event)
-{
+bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   // called by the worker which is automatically set up if rosparam standalone == True.
   // The frequency is defined in the time_step rosparam.
   MELO_INFO("update called");
@@ -90,14 +93,12 @@ bool EthercatNode::update(const any_worker::WorkerEvent& event)
   return true;
 }
 
-void EthercatNode::preCleanup()
-{
+void EthercatNode::preCleanup() {
   // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
   MELO_INFO("preCleanup called");
 }
 
-void EthercatNode::subscriberCallback(const std_msgs::StringConstPtr &msg)
-{
+void EthercatNode::subscriberCallback(const std_msgs::StringConstPtr &msg) {
   // called asynchrounously when ros messages arrive for the subscriber created in init() function
   MELO_INFO("received ros message: %s", msg->data.c_str());
 }

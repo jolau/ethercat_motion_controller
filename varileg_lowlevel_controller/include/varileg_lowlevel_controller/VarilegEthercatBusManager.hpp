@@ -11,7 +11,9 @@ class VarilegEthercatBusManager : public soem_interface::EthercatBusManagerBase 
   VarilegEthercatBusManager() = default;
   ~VarilegEthercatBusManager() = default;
 
-  void addEthercatBus(const soem_interface::EthercatBusBasePtr& bus);
+  void addEthercatBus(soem_interface::EthercatBusBasePtr bus);
+
+ private:
 };
 
 using VarilegEthercatBusManagerPtr = std::shared_ptr<VarilegEthercatBusManager>;
