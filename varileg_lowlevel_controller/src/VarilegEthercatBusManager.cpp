@@ -4,8 +4,8 @@
 
 #include "varileg_lowlevel_controller/VarilegEthercatBusManager.hpp"
 
-void VarilegEthercatBusManager::addEthercatBus(const soem_interface::EthercatBusBasePtr& bus) {
-  const auto& it = buses_.find(bus->getName());
+void VarilegEthercatBusManager::addEthercatBus(soem_interface::EthercatBusBasePtr bus) {
+  const auto &it = buses_.find(bus->getName());
   if (it == buses_.end()) {
     buses_.insert(std::make_pair(bus->getName(), bus));
   }
