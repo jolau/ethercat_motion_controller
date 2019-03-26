@@ -14,7 +14,7 @@ class EthercatBusManagerBase {
   EthercatBusManagerBase() = default;
   virtual ~EthercatBusManagerBase() = default;
 
-  bool startupAllBuses();
+  bool startupAllBuses(bool waitForOperational = false);
   void readAllBuses();
   void writeToAllBuses();
   void shutdownAllBuses();
@@ -27,7 +27,7 @@ class EthercatBusManagerBase {
  protected:
   // Mutex prohibiting simultaneous access to EtherCAT bus manager.
   std::recursive_mutex busMutex_;
-  std::map<std::string, EthercatBusBasePtr> buses_;
+  std::map<std::string, soem_interface::EthercatBusBasePtr> buses_;
 };
 
 using EthercatBusManagerBasePtr = std::shared_ptr<EthercatBusManagerBase>;

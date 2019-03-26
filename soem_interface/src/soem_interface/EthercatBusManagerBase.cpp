@@ -3,7 +3,7 @@
 
 namespace soem_interface {
 
-bool EthercatBusManagerBase::startupAllBuses() {
+bool EthercatBusManagerBase::startupAllBuses(bool waitForOperational) {
   std::lock_guard<std::recursive_mutex> lock(busMutex_);
   for (auto& bus : buses_) {
     if (!bus.second->startup()) {
@@ -15,6 +15,9 @@ bool EthercatBusManagerBase::startupAllBuses() {
   // Only set the state but do not wait for it, since some devices (e.g. junctions) might not be able to reach it.
   for (auto& bus : buses_) {
     bus.second->setState(EC_STATE_OPERATIONAL);
+    if(waitForOperational) {
+      bus.second->waitForState(EC_STATE_OPERATIONAL);
+    }
   }
 
   return true;

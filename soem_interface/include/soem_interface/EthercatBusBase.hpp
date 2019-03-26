@@ -226,6 +226,7 @@ class EthercatBusBase {
   std::string name_;
 
   //! List of slaves.
+  //std::vector<std::weak_ptr<EthercatSlaveBase>> slaves_;
   std::vector<EthercatSlaveBasePtr> slaves_;
 
   //! Bool indicating whether PDO data has been sent and not read yet.
