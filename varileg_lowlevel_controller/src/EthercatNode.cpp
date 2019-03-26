@@ -41,6 +41,7 @@ bool EthercatNode::mapEpos2Joint(EposEthercatSlavePtr &eposEthercatSlave) {
 
   for (auto &pair : jointName2NodeIdMap_) {
     if (pair.second == nodeId) {
+      MELO_INFO_STREAM("Mapped " << eposEthercatSlave->getName() << " to " << pair.first);
       eposEthercatSlaves_.insert(std::make_pair(pair.first, eposEthercatSlave));
       return true;
     }
@@ -86,9 +87,9 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   // The frequency is defined in the time_step rosparam.
   MELO_INFO("update called");
 
-  //ethercat_bus_->updateRead();
+  busManager_->readAllBuses();
 
-  //ethercat_bus_->updateWrite();
+  busManager_->writeToAllBuses();
 
   return true;
 }
