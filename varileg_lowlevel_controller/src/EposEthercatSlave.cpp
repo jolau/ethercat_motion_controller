@@ -82,7 +82,7 @@ void EposEthercatSlave::updateRead() {
   bus_->readTxPdo(address_, tx_pdo_);
 }
 
-int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord)
+int EposEthercatSlave::ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord)
 {
   int  _enable=0;
   if (bit_is_clear(StatusWord, STATUSWORD_OPERATION_ENABLE_BIT)) //Not ENABLED yet
@@ -93,31 +93,31 @@ int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord)
       {
         if (bit_is_set(StatusWord, STATUSWORD_FAULT_BIT)) //FAULT exist
         {
-          MELO_INFO_STREAM("COMMAND: fault reset")
+          MELO_INFO_STREAM(name_ << ": COMMAND: fault reset")
           (*ControlWord)=0x80;	//FAULT RESET command
         }
         else //NO FAULT
         {
-          MELO_INFO_STREAM("COMMAND: shutdown")
+          MELO_INFO_STREAM(name_ << ": COMMAND: shutdown")
           (*ControlWord)=0x06;	//SHUTDOWN command (transition#2)
         }
       }
       else //READY to SWITCH ON
       {
-        MELO_INFO_STREAM("COMMAND: switch on")
+        MELO_INFO_STREAM(name_ << ": COMMAND: switch on")
         (*ControlWord)=0x07;	//SWITCH ON command (transition#3)
       }
     }
     else //has been SWITCHED ON
     {
-      MELO_INFO_STREAM("COMMAND: enable operation")
+      MELO_INFO_STREAM(name_ << ": COMMAND: enable operation")
       (*ControlWord)=0x0F;	//ENABLE OPETATION command (transition#4)
       _enable=1;
     }
   }
   else //has been ENABLED
   {
-    MELO_INFO_STREAM("COMMAND: maintain operation state")
+    MELO_INFO_STREAM(name_ << ": COMMAND: maintain operation state")
     (*ControlWord)=0x0F;	//maintain OPETATION state
     _enable=1;
   }
@@ -132,24 +132,24 @@ void EposEthercatSlave::updateWrite() {
   RxPdo rxPdo;
 
   std::string binary = std::bitset<16>(tx_pdo_.StatusWord).to_string();
-  MELO_INFO_STREAM("Status Word: " << binary)
+  MELO_DEBUG_STREAM(name_ << ": Status Word: " << binary)
 
   if(!ready_) {
-    MELO_INFO("Enabling Drive");
+    MELO_DEBUG_STREAM(name_ << ": Enabling Drive");
     ready_ = ServoOn_GetCtrlWrd(tx_pdo_.StatusWord, &controlword);
     rxPdo.ControlWord = controlword;
   } else {
-    MELO_INFO_STREAM("Actual Position: " << tx_pdo_.PositionActualValue);
+    MELO_DEBUG_STREAM(name_ << ": Actual Position: " << tx_pdo_.PositionActualValue);
     if (tx_pdo_.PositionActualValue < 5000) {
       rxPdo.TargetPosition = 5100;
     } else {
       rxPdo.TargetPosition = 0;
     }
-    MELO_INFO_STREAM("Send Target Position: " << rxPdo.TargetPosition);
+    MELO_DEBUG_STREAM(name_ << ": Send Target Position: " << rxPdo.TargetPosition);
   }
 
   binary = std::bitset<16>(rxPdo.ControlWord).to_string();
-  MELO_INFO_STREAM("Control Word: " << binary)
+  MELO_DEBUG_STREAM("Control Word: " << binary)
 
   bus_->writeRxPdo(address_, rxPdo);
 }

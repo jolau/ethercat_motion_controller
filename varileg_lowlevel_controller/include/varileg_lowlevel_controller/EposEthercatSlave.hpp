@@ -29,6 +29,7 @@ namespace varileg_lowlevel_controller {
 
    uint8_t readNodeId();
   private:
+     int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord);
    const std::string name_;
    TxPdo tx_pdo_;
    bool ready_;
