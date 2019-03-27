@@ -42,7 +42,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/EthercatNode.cpp
   src/EposEthercatSlave.cpp
-  include/varileg_lowlevel_controller/RxPdo.hpp include/varileg_lowlevel_controller/TxPdo.hpp src/VarilegEthercatBusManager.cpp include/varileg_lowlevel_controller/VarilegEthercatBusManager.hpp)
+  include/varileg_lowlevel_controller/RxPdo.hpp include/varileg_lowlevel_controller/TxPdo.hpp src/VarilegEthercatBusManager.cpp include/varileg_lowlevel_controller/VarilegEthercatBusManager.hpp include/varileg_lowlevel_controller/EposCommandLibrary.hpp)
 
 
 target_link_libraries(${PROJECT_NAME}
