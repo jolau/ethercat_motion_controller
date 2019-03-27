@@ -2,9 +2,6 @@
 // Created by jolau on 05.03.19.
 //
 
-#include <varileg_lowlevel_controller/EposEthercatSlave.hpp>
-#include <varileg_lowlevel_controller/EposCommandLibrary.hpp>
-
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
 
 #define _BV(bit)                (1 << (bit))
@@ -25,6 +22,8 @@
 #define STATUSWORD_REMOTE_BIT                    9
 #define STATUSWORD_TARGET_REACHED_BIT            10
 #define STATUSWORD_INTERNAL_LIMIT_ACTIVE_BIT    11
+
+using namespace varileg_lowlevel_controller_msgs;
 
 namespace varileg_lowlevel_controller {
 
@@ -171,76 +170,75 @@ void EposEthercatSlave::shutdown() {
 
 bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
                                                  const uint16_t currentStatusword,
-                                                 const uint8_t targetState) {
+                                                 const varileg_lowlevel_controller_msgs::MotorControllerState targetState) {
   if (EposCommandLibrary::Statuswords::SWITCH_ON_DISABLED.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_READY_TO_SWITCH_ON:
-      case STATE_OP_ENABLED:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+      case MotorControllerState::STATE_OP_ENABLED:
         EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::READY_TO_SWITCH_ON.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_SWITCHED_ON:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_SWITCHED_ON:
         EposCommandLibrary::Controlwords::SWITCH_ON.apply(controlword);
         return true;
-      case STATE_OP_ENABLED:
+      case MotorControllerState::STATE_OP_ENABLED:
         EposCommandLibrary::Controlwords::SWITCH_ON_ENABLE_OP.apply(controlword);
         return true;
-      case STATE_SWITCH_ON_DISABLED:
+      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
         EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::SWITCHED_ON.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_OP_ENABLED:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_OP_ENABLED:
         EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
         return true;
-      case STATE_READY_TO_SWITCH_ON:
+      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
         EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
         return true;
-      case STATE_SWITCH_ON_DISABLED:
+      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
         EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::OP_ENABLED.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_QUICK_STOP_ACTIVE:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
         EposCommandLibrary::Controlwords::QUICK_STOP.apply(controlword);
         return true;
-      case STATE_SWITCHED_ON:
+      case MotorControllerState::STATE_SWITCHED_ON:
         EposCommandLibrary::Controlwords::DISABLE_OP.apply(controlword);
         return true;
-      case STATE_READY_TO_SWITCH_ON:
+      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
         EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
         return true;
-      case STATE_SWITCH_ON_DISABLED:
+      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
         EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::QUICK_STOP_ACTIVE.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_OP_ENABLED:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_OP_ENABLED:
         EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
         return true;
-      case STATE_SWITCH_ON_DISABLED:
+      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
         EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::FAULT.isActive(currentStatusword)) {
-    switch (targetState) {
-      case STATE_SWITCH_ON_DISABLED:
+    switch (targetState.state) {
+      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
         EposCommandLibrary::Controlwords::FAULT_RESET.apply(controlword);
         return true;
     }
   } else if (EposCommandLibrary::Statuswords::FAULT_REACTION_ACTIVE.isActive(currentStatusword)) {
     MELO_INFO_STREAM("Doing nothing, will be autotransfered to state FAULT.")
     return true;
-  }
-  else if (EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON.isActive(currentStatusword)) {
+  } else if (EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON.isActive(currentStatusword)) {
     MELO_INFO_STREAM("Doing nothing, will be autotransfered to state SWITCH ON DISABLED.")
     return true;
-  }else {
+  } else {
     MELO_ERROR_STREAM("Unknown Statusword: " << currentStatusword);
     return false;
   }
