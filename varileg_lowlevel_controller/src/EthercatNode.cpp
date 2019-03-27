@@ -1,9 +1,15 @@
 #include "varileg_lowlevel_controller/EthercatNode.hpp"
-
+#include "varileg_lowlevel_controller_msgs/MotorControllerState.h"
+#include "varileg_lowlevel_controller_msgs/ExtendedJointState.h"
 
 namespace varileg_lowlevel_controller {
 
 bool EthercatNode::init() {
+  varileg_lowlevel_controller_msgs::MotorControllerState motorControllerState;
+  motorControllerState.state = 3;
+  varileg_lowlevel_controller_msgs::ExtendedJointState jointState;
+  jointState.motor_controller_state[0].state = varileg_lowlevel_controller_msgs::MotorControllerState::STATE_SWITCH_ON_DISABLED;
+
   MELO_INFO("init called");
 
   jointName2NodeIdMap_ = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
