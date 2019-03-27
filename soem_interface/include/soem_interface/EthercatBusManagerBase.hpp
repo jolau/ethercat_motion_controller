@@ -14,10 +14,10 @@ class EthercatBusManagerBase {
   EthercatBusManagerBase() = default;
   virtual ~EthercatBusManagerBase() = default;
 
-  bool startupAllBuses(bool waitForOperational = false);
-  void readAllBuses();
-  void writeToAllBuses();
-  void shutdownAllBuses();
+  bool startupAllBuses(const std::map<std::string, std::vector<EthercatSlaveBasePtr>> &slavesOfBusesMap, bool waitForOperational = false);
+  void receiveAllBusBuffers();
+  void sendAllBusBuffers();
+  void shutdownAllBuses(const std::map<std::string, std::vector<EthercatSlaveBasePtr>> &slavesOfBusesMap);
 
   EthercatBusBasePtr getBusByName(const std::string& name) {
     return buses_.at(name);
