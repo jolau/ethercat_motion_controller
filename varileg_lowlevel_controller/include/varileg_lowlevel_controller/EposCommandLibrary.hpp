@@ -19,7 +19,7 @@ struct Controlword {
   uint16_t word;
   uint16_t mask;
 
-  void apply(uint16_t &controlword) {
+  void apply(uint16_t &controlword) const {
     controlword = (controlword & ~mask) | (word & mask);
   }
 };
@@ -28,7 +28,7 @@ struct Statusword {
   uint16_t word;
   uint16_t mask;
 
-  bool isActive(const uint16_t &statusword) {
+  bool isActive(const uint16_t &statusword) const {
     return (statusword & mask) == word;
   };
 };
