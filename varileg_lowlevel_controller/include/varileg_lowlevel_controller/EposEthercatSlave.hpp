@@ -29,10 +29,12 @@ namespace varileg_lowlevel_controller {
 
    uint8_t readNodeId();
   private:
+
    const std::string name_;
+   PdoInfo pdoInfo_;
+
    TxPdo tx_pdo_;
    bool ready_;
-   PdoInfo pdoInfo_;
 };
 
  using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;

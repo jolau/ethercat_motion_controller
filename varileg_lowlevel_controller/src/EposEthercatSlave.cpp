@@ -3,6 +3,7 @@
 //
 
 #include <varileg_lowlevel_controller/EposEthercatSlave.hpp>
+#include <varileg_lowlevel_controller/EposCommandLibrary.hpp>
 
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
 
@@ -31,13 +32,10 @@ namespace varileg_lowlevel_controller {
 EposEthercatSlave::EposEthercatSlave(const std::string &name,
                                      const soem_interface::EthercatBusBasePtr &bus,
                                      const uint32_t address) : soem_interface::EthercatSlaveBase(bus, address), name_(name) {
-
   pdoInfo_.rxPdoId_ = 0x1600;
   pdoInfo_.txPdoId_ = 0x1200;
   pdoInfo_.rxPdoSize_ = sizeof(RxPdo);
   pdoInfo_.txPdoSize_ = sizeof(TxPdo);
-  pdoInfo_.moduleId_ = 0x00119800;
-
 }
 
 std::string EposEthercatSlave::getName() const {
@@ -51,27 +49,23 @@ soem_interface::EthercatSlaveBase::PdoInfo EposEthercatSlave::getCurrentPdoInfo(
 bool EposEthercatSlave::startup() {
   bus_->setState(EC_STATE_PRE_OP);
   if(!bus_->waitForState(EC_STATE_PRE_OP)) {
-    MELO_WARN("not entered pre op");
+    MELO_ERROR_STREAM(name_ << ": not entered PRE OP");
+    return false;
   }
 
-  // TODO: better return
-
   // set mode to CSP
-  bus_->sendSdoWrite(address_, 0x6060, 0x00, true, 0X08);
-
+  if(!bus_->sendSdoWrite(address_, EposCommandLibrary::SDOs::MODES_OF_OPERATION.index, EposCommandLibrary::SDOs::MODES_OF_OPERATION.subindex, true, 0X08)) {
+    MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
+    return false;
+  }
 
   // get mode
   int8_t mode = 0;
-  bus_->sendSdoRead(address_, 0x6061, 0x00, false, mode);
-  MELO_INFO_STREAM("Operation Mode: " << static_cast<int>(mode));
-
-  //bus_->sendSdoWrite(address_, 0x6040, 0x00, true, 0x0008);
-
-
-/*
-  bus_->sendSdoWrite(address_, 0xF030, 0x00, true, 1);
-
-  bus_->sendSdoWrite(address_, 0xF030, 0x01, true, 0x6800000);*/
+  bus_->sendSdoRead(address_, EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY.index, EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY.subindex, false, mode);
+  if(mode != 0x08) {
+    MELO_ERROR_STREAM(name_ << ": CSP mode was not set. Has mode: " << mode)
+    return false;
+  }
 
   return true;
 }
@@ -121,7 +115,7 @@ int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord)
     (*ControlWord)=0x0F;	//maintain OPETATION state
     _enable=1;
   }
-  return _enable;;
+  return _enable;
 }
 
 void EposEthercatSlave::updateWrite() {
@@ -156,7 +150,7 @@ void EposEthercatSlave::updateWrite() {
 
 uint8_t EposEthercatSlave::readNodeId() {
   uint8_t nodeId = 0;
-  if(!bus_->sendSdoRead(address_, 0x2000, 0x00, false, nodeId)) {
+  if(!bus_->sendSdoRead(address_, EposCommandLibrary::SDOs::NODE_ID.index, EposCommandLibrary::SDOs::NODE_ID.subindex, false, nodeId)) {
     MELO_ERROR_STREAM("Could not read NodeID of " << name_);
   }
   return nodeId;
