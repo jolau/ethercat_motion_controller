@@ -128,24 +128,24 @@ void EposEthercatSlave::updateWrite() {
   RxPdo rxPdo;
 
   std::string binary = std::bitset<16>(tx_pdo_.StatusWord).to_string();
-  MELO_INFO_STREAM("Status Word: " << binary)
+  MELO_DEBUG_STREAM(name_ << ": Status Word: " << binary)
 
-  if (!ready_) {
-    MELO_INFO("Enabling Drive");
+  if(!ready_) {
+    MELO_DEBUG_STREAM(name_ << ": Enabling Drive");
     ready_ = ServoOn_GetCtrlWrd(tx_pdo_.StatusWord, &controlword);
     rxPdo.ControlWord = controlword;
   } else {
-    MELO_INFO_STREAM("Actual Position: " << tx_pdo_.PositionActualValue);
+    MELO_DEBUG_STREAM(name_ << ": Actual Position: " << tx_pdo_.PositionActualValue);
     if (tx_pdo_.PositionActualValue < 5000) {
       rxPdo.TargetPosition = 5100;
     } else {
       rxPdo.TargetPosition = 0;
     }
-    MELO_INFO_STREAM("Send Target Position: " << rxPdo.TargetPosition);
+    MELO_DEBUG_STREAM(name_ << ": Send Target Position: " << rxPdo.TargetPosition);
   }
 
   binary = std::bitset<16>(rxPdo.ControlWord).to_string();
-  MELO_INFO_STREAM("Control Word: " << binary)
+  MELO_DEBUG_STREAM("Control Word: " << binary)
 
   bus_->writeRxPdo(address_, rxPdo);
 }
