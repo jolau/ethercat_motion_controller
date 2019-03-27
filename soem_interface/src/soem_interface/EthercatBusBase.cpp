@@ -121,6 +121,7 @@ bool EthercatBusBase::startup() {
     return false;
   }
 
+  // TODO: uncomment?
   // Disable symmetrical transfers.
   //ecatContext_.grouplist[0].blockLRW = 1;
 

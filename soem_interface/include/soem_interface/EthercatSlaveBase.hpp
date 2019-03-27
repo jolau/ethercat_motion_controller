@@ -18,7 +18,6 @@ class EthercatSlaveBase {
     uint16_t txPdoId_ = 0;
     uint16_t rxPdoSize_ = 0;
     uint16_t txPdoSize_ = 0;
-    uint32_t moduleId_ = 0;
   };
 
   EthercatSlaveBase(const EthercatBusBasePtr& bus, const uint32_t address);
