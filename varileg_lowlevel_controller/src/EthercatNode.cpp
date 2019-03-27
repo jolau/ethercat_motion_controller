@@ -5,31 +5,30 @@
 namespace varileg_lowlevel_controller {
 
 bool EthercatNode::init() {
-  varileg_lowlevel_controller_msgs::MotorControllerState motorControllerState;
-  motorControllerState.state = 3;
-  varileg_lowlevel_controller_msgs::ExtendedJointState jointState;
-  jointState.motor_controller_state[0].state = varileg_lowlevel_controller_msgs::MotorControllerState::STATE_SWITCH_ON_DISABLED;
-
   MELO_INFO("init called");
 
-  jointName2NodeIdMap_ = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
+  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
+  eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap)
 
-  for (auto &pair : jointName2NodeIdMap_) {
+  for (auto &pair : jointName2NodeIdMap) {
     MELO_INFO_STREAM("key: " << pair.first << " value: " << pair.second)
   }
 
-  std::array<EposEthercatSlavePtr, 4> unmappedEposEthercatSlaves = setupBusManager();
+  setupBusManager();
 
   MELO_INFO_STREAM("before bus startup");
-  if(!busManager_->startupAllBuses(true)) {
+  if(!busManager_->startupAllBuses(slavesOfBusesMap_, true)) {
     MELO_ERROR("Startup of all buses failed.");
     return false;
   }
   MELO_INFO_STREAM("after bus startup");
 
-  for(EposEthercatSlavePtr eposEthercatSlave : unmappedEposEthercatSlaves) {
-    if(!mapEpos2Joint(eposEthercatSlave)) {
-      return false;
+  for(auto it : slavesOfBusesMap_) {
+    for(soem_interface::EthercatSlaveBasePtr slave : it.second) {
+      EposEthercatSlavePtr eposEthercatSlavePtr = std::dynamic_pointer_cast<EposEthercatSlave>(slave);
+      if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlavePtr)) {
+        return false;
+      }
     }
   }
 
@@ -42,41 +41,25 @@ bool EthercatNode::init() {
   return true;
 }
 
-bool EthercatNode::mapEpos2Joint(EposEthercatSlavePtr &eposEthercatSlave) {
-  uint8_t nodeId = eposEthercatSlave->readNodeId();
-
-  for (auto &pair : jointName2NodeIdMap_) {
-    if (pair.second == nodeId) {
-      eposEthercatSlaves_.insert(std::make_pair(pair.first, eposEthercatSlave));
-      return true;
-    }
-  }
-
-  MELO_ERROR_STREAM("Unmapped EPOS EtherCAT slave with NodeID found: " << nodeId);
-  return false;
-}
-
-std::array<EposEthercatSlavePtr, 4> EthercatNode::setupBusManager() {
+void EthercatNode::setupBusManager() {
   std::string leftBusName = param<std::string>("left_bus_name", "ens9");
   std::string rightBusName = param<std::string>("right_bus_name", "eth1");
 
-  std::array<EposEthercatSlavePtr, 4> unmappedEposEthercatSlaves;
-
   soem_interface::EthercatBusBasePtr leftBus = std::make_shared<soem_interface::EthercatBusBase>(leftBusName);
-  unmappedEposEthercatSlaves[0] = std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1);
-  leftBus->addSlave(unmappedEposEthercatSlaves[0]);
-  unmappedEposEthercatSlaves[1] = std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2);
-  leftBus->addSlave(unmappedEposEthercatSlaves[1]);
   busManager_->addEthercatBus(leftBus);
 
+  std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves(2);
+  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
+  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
+  slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
+
   soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
-  unmappedEposEthercatSlaves[2] = std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1);
-  rightBus->addSlave(unmappedEposEthercatSlaves[2]);
-  unmappedEposEthercatSlaves[3] = std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2);
-  rightBus->addSlave(unmappedEposEthercatSlaves[3]);
   busManager_->addEthercatBus(rightBus);
 
-  return unmappedEposEthercatSlaves;
+  std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves(2);
+  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
+  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
+  slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
 }
 
 void EthercatNode::cleanup() {
@@ -92,9 +75,13 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   // The frequency is defined in the time_step rosparam.
   MELO_INFO("update called");
 
-  //ethercat_bus_->updateRead();
+  busManager_->receiveAllBusBuffers();
 
-  //ethercat_bus_->updateWrite();
+  eposEthercatSlaveManager_->updateWriteAll();
+
+  eposEthercatSlaveManager_->updateReadAll();
+
+  busManager_->sendAllBusBuffers();
 
   return true;
 }

@@ -5,6 +5,7 @@
 #include "VarilegEthercatBusManager.hpp"
 #include "EposEthercatSlave.hpp"
 #include "soem_interface/EthercatBusBase.hpp"
+#include "EposEthercatSlaveManager.hpp"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
@@ -29,11 +30,10 @@ class EthercatNode : public any_node::Node {
 
  private:
   VarilegEthercatBusManagerPtr busManager_;
-  std::map<std::string, EposEthercatSlavePtr> eposEthercatSlaves_;
-  std::map<std::string, int> jointName2NodeIdMap_;
-  std::array<EposEthercatSlavePtr, 4> setupBusManager();
+  std::map<std::string, std::vector<soem_interface::EthercatSlaveBasePtr>> slavesOfBusesMap_;
+  EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
 
-  bool mapEpos2Joint(EposEthercatSlavePtr &eposEthercatSlave);
+  void setupBusManager();
 };
 
 }
