@@ -2,10 +2,14 @@
 // Created by jolau on 27.03.19.
 //
 
-#include <varileg_lowlevel_controller/EposEthercatSlaveManager.hpp>
-
 #include "varileg_lowlevel_controller/EposEthercatSlaveManager.hpp"
+
 bool varileg_lowlevel_controller::EposEthercatSlaveManager::addEposEthercatSlave(varileg_lowlevel_controller::EposEthercatSlavePtr eposEthercatSlave) {
+  if(!eposEthercatSlave->isStartedUp()) {
+    MELO_ERROR_STREAM("Bus resp. slave: " << eposEthercatSlave->getName() << " were not started up.")
+    return false;
+  }
+
   uint8_t nodeId = eposEthercatSlave->readNodeId();
 
   for (auto &pair : jointName2NodeIdMap_) {

@@ -9,10 +9,10 @@ project(varileg_lowlevel_controller)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
   COMPONENTS
-    any_node
-    message_logger
-    soem_interface
-    varileg_lowlevel_controller_msgs
+  any_node
+  message_logger
+  soem_interface
+  varileg_lowlevel_controller_msgs
   )
 
 ###################################
@@ -20,15 +20,15 @@ find_package(catkin REQUIRED
 ###################################
 catkin_package(
   INCLUDE_DIRS
-    include
+  include
   LIBRARIES
-    ${PROJECT_NAME}
+  ${PROJECT_NAME}
   CATKIN_DEPENDS
-    any_node
-    std_msgs
-    message_logger
-    soem_interface
-    varileg_lowlevel_controller_msgs
+  any_node
+  std_msgs
+  message_logger
+  soem_interface
+  varileg_lowlevel_controller_msgs
 )
 
 ###########
@@ -47,17 +47,33 @@ add_library(${PROJECT_NAME}
   include/varileg_lowlevel_controller/RxPdo.hpp include/varileg_lowlevel_controller/TxPdo.hpp src/VarilegEthercatBusManager.cpp include/varileg_lowlevel_controller/VarilegEthercatBusManager.hpp include/varileg_lowlevel_controller/EposCommandLibrary.hpp src/EposEthercatSlaveManager.cpp include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp)
 
 
+
+
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-)
+  )
 
 add_executable(${PROJECT_NAME}_node
   src/varileg_lowlevel_controller.cpp
-)
+  )
 
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   )
+
+#add_executable(${PROJECT_NAME}_example_node
+#  src/examples/epos_example.cpp
+#  )
+#
+#target_link_libraries(${PROJECT_NAME}_example_node
+#  ${PROJECT_NAME}
+#  )
+#
+#add_dependencies(
+#  ${PROJECT_NAME}_example_node
+#  ${PROJECT_NAME}
+#  ${catkin_EXPORTED_TARGETS}
+#)
 
 #############
 ## Install ##
