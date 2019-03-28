@@ -24,6 +24,12 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   PdoInfo getCurrentPdoInfo() const override;
 
+  /**
+  * Was startup successfully called?
+  * @return
+  */
+  const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
+
   bool startup() override;
   void updateRead() override;
   void updateWrite() override;
@@ -31,7 +37,9 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   uint8_t readNodeId();
  private:
-  bool applyNextStateTransition(uint16_t &controlword, const uint16_t currentStatusword, const varileg_lowlevel_controller_msgs::MotorControllerState targetState);
+  bool applyNextStateTransition(uint16_t &controlword,
+                                const uint16_t currentStatusword,
+                                const varileg_lowlevel_controller_msgs::MotorControllerState targetState);
 
   const std::map<uint8_t, Statusword> STATE_STATUSWORD_MAP
       {
@@ -54,6 +62,9 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   const std::string name_;
   PdoInfo pdoInfo_;
+
+  //! Bool indicating if slave and bus startup was called
+  bool isStartedUp_{false};
 
   TxPdo tx_pdo_;
   bool ready_;

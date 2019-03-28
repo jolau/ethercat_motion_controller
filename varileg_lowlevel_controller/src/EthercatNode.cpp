@@ -8,7 +8,7 @@ bool EthercatNode::init() {
   MELO_INFO("init called");
 
   auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
-  eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap)
+  eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
 
   for (auto &pair : jointName2NodeIdMap) {
     MELO_INFO_STREAM("key: " << pair.first << " value: " << pair.second)
@@ -67,7 +67,7 @@ void EthercatNode::cleanup() {
   // no need to stop workers which are started with addWorker(..) function
   MELO_INFO("cleanup called");
 
-  busManager_->shutdownAllBuses();
+  busManager_->shutdownAllBuses(slavesOfBusesMap_);
 }
 
 bool EthercatNode::update(const any_worker::WorkerEvent &event) {
