@@ -2,7 +2,13 @@
 // Created by jolau on 27.03.19.
 //
 
+#include <varileg_lowlevel_controller/EposEthercatSlaveManager.hpp>
+
 #include "varileg_lowlevel_controller/EposEthercatSlaveManager.hpp"
+
+varileg_lowlevel_controller::EposEthercatSlaveManager::~EposEthercatSlaveManager() {
+
+}
 
 bool varileg_lowlevel_controller::EposEthercatSlaveManager::addEposEthercatSlave(varileg_lowlevel_controller::EposEthercatSlavePtr eposEthercatSlave) {
   if(!eposEthercatSlave->isStartedUp()) {
@@ -25,4 +31,10 @@ bool varileg_lowlevel_controller::EposEthercatSlaveManager::addEposEthercatSlave
 
 void varileg_lowlevel_controller::EposEthercatSlaveManager::setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap) {
   jointName2NodeIdMap_ = jointName2NodeIdMap;
+}
+void varileg_lowlevel_controller::EposEthercatSlaveManager::updateWriteAll() {
+
+}
+varileg_lowlevel_controller_msgs::ExtendedJointState varileg_lowlevel_controller::EposEthercatSlaveManager::updateReadAll() {
+  return varileg_lowlevel_controller_msgs::ExtendedJointState();
 }

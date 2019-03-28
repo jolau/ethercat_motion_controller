@@ -44,9 +44,14 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/EthercatNode.cpp
   src/EposEthercatSlave.cpp
-  include/varileg_lowlevel_controller/RxPdo.hpp include/varileg_lowlevel_controller/TxPdo.hpp src/VarilegEthercatBusManager.cpp include/varileg_lowlevel_controller/VarilegEthercatBusManager.hpp include/varileg_lowlevel_controller/EposCommandLibrary.hpp src/EposEthercatSlaveManager.cpp include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp)
-
-
+  include/varileg_lowlevel_controller/RxPdo.hpp
+  include/varileg_lowlevel_controller/TxPdo.hpp
+  src/VarilegEthercatBusManager.cpp
+  include/varileg_lowlevel_controller/EposCommandLibrary.hpp
+  src/EposEthercatSlaveManager.cpp
+  include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp
+  src/examples/EposExampleNode.cpp
+  )
 
 
 target_link_libraries(${PROJECT_NAME}
@@ -61,14 +66,14 @@ target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   )
 
-#add_executable(${PROJECT_NAME}_example_node
-#  src/examples/epos_example.cpp
-#  )
-#
-#target_link_libraries(${PROJECT_NAME}_example_node
-#  ${PROJECT_NAME}
-#  )
-#
+add_executable(epos_example_node
+  src/examples/epos_example.cpp
+  )
+
+target_link_libraries(epos_example_node
+  ${PROJECT_NAME}
+  )
+
 #add_dependencies(
 #  ${PROJECT_NAME}_example_node
 #  ${PROJECT_NAME}
