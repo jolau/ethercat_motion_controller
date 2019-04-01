@@ -2,28 +2,9 @@
 // Created by jolau on 05.03.19.
 //
 
+#include <varileg_lowlevel_controller/EposEthercatSlave.hpp>
+
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
-
-#define _BV(bit)                (1 << (bit))
-#define bit_is_set(val, bit)    (val & _BV(bit))
-#define bit_is_clear(val, bit)    (!(val & _BV(bit)))
-#define sbi(val, bit)            ((val) |= _BV(bit))
-#define cbi(val, bit)            ((val) &= ~_BV(bit))
-
-#define STATUSWORD_READY_TO_SWITCH_ON_BIT        0
-#define STATUSWORD_SWITCHED_ON_BIT                1
-#define STATUSWORD_OPERATION_ENABLE_BIT        2
-#define STATUSWORD_FAULT_BIT                    3
-#define STATUSWORD_VOLTAGE_ENABLE_BIT            4
-#define STATUSWORD_QUICK_STOP_BIT                5
-#define STATUSWORD_SWITCH_ON_DISABLE_BIT        6
-#define STATUSWORD_NO_USED_WARNING_BIT            7
-#define STATUSWORD_ELMO_NOT_USED_BIT            8
-#define STATUSWORD_REMOTE_BIT                    9
-#define STATUSWORD_TARGET_REACHED_BIT            10
-#define STATUSWORD_INTERNAL_LIMIT_ACTIVE_BIT    11
-
-using namespace varileg_lowlevel_controller_msgs;
 
 namespace varileg_lowlevel_controller {
 
@@ -55,7 +36,7 @@ bool EposEthercatSlave::startup() {
   // set mode to CSP
   if (!bus_->sendSdoWrite(address_,
                           EposCommandLibrary::SDOs::MODES_OF_OPERATION.index,
-                          EposCommandLibrary::SDOs::MODES_OF_OPERATION.subindex,
+                          EposCommandLibrary::wfasdffdsdsafdfssfdallkjlkSDOs::MODES_OF_OPERATION.subindex,
                           true,
                           0X08)) {
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
@@ -69,83 +50,41 @@ bool EposEthercatSlave::startup() {
                     EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY.subindex,
                     false,
                     mode);
+
+
+  MELO_ERROR_STREAM(name_ << ": CSP mode was not set. Has mode: " << std::to_string(mode) << " asldkjf")
   if (mode != 0x08) {
-    MELO_ERROR_STREAM(name_ << ": CSP mode was not set. Has mode: " << mode)
     return false;
   }
+
+  isStartedUp_ = true;
 
   return true;
 }
 
-void EposEthercatSlave::updateRead() {
+void EposEthercatSlave::readInbox() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  bus_->readTxPdo(address_, tx_pdo_);
+  TxPdo txPdo;
+
+  bus_->readTxPdo(address_, txPdo);
+
+  receiveJointState_.motorControllerState = getMotorControllerState(txPdo.StatusWord);
+  receiveJointState_.position = txPdo.PositionActualValue;
 }
 
-int ServoOn_GetCtrlWrd(uint16_t StatusWord, uint16_t *ControlWord) {
-  int _enable = 0;
-  if (bit_is_clear(StatusWord, STATUSWORD_OPERATION_ENABLE_BIT)) //Not ENABLED yet
-  {
-    if (bit_is_clear(StatusWord, STATUSWORD_SWITCHED_ON_BIT)) //Not SWITCHED ON yet
-    {
-      if (bit_is_clear(StatusWord, STATUSWORD_READY_TO_SWITCH_ON_BIT)) //Not READY to SWITCH ON yet
-      {
-        if (bit_is_set(StatusWord, STATUSWORD_FAULT_BIT)) //FAULT exist
-        {
-          MELO_INFO_STREAM("COMMAND: fault reset")
-          (*ControlWord) = 0x80;    //FAULT RESET command
-        } else //NO FAULT
-        {
-          MELO_INFO_STREAM("COMMAND: shutdown")
-          (*ControlWord) = 0x06;    //SHUTDOWN command (transition#2)
-        }
-      } else //READY to SWITCH ON
-      {
-        MELO_INFO_STREAM("COMMAND: switch on")
-        (*ControlWord) = 0x07;    //SWITCH ON command (transition#3)
-      }
-    } else //has been SWITCHED ON
-    {
-      MELO_INFO_STREAM("COMMAND: enable operation")
-      (*ControlWord) = 0x0F;    //ENABLE OPETATION command (transition#4)
-      _enable = 1;
-    }
-  } else //has been ENABLED
-  {
-    MELO_INFO_STREAM("COMMAND: maintain operation state")
-    (*ControlWord) = 0x0F;    //maintain OPETATION state
-    _enable = 1;
-  }
-  return _enable;
-}
-
-void EposEthercatSlave::updateWrite() {
+void EposEthercatSlave::writeOutbox() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  uint16_t controlword = 0;
 
   RxPdo rxPdo;
 
-  std::string binary = std::bitset<16>(tx_pdo_.StatusWord).to_string();
-  MELO_DEBUG_STREAM(name_ << ": Status Word: " << binary)
+  uint16_t controlWord = 0;
 
-  if(!ready_) {
-    MELO_DEBUG_STREAM(name_ << ": Enabling Drive");
-    ready_ = ServoOn_GetCtrlWrd(tx_pdo_.StatusWord, &controlword);
-    rxPdo.ControlWord = controlword;
-  } else {
-    MELO_DEBUG_STREAM(name_ << ": Actual Position: " << tx_pdo_.PositionActualValue);
-    if (tx_pdo_.PositionActualValue < 5000) {
-      rxPdo.TargetPosition = 5100;
-    } else {
-      rxPdo.TargetPosition = 0;
-    }
-    MELO_DEBUG_STREAM(name_ << ": Send Target Position: " << rxPdo.TargetPosition);
-  }
+  applyNextStateTransition(controlWord, receiveJointState_.motorControllerState, sendJointState_.motorControllerState);
+  MELO_INFO_STREAM("Current state: " << static_cast<int>(receiveJointState_.motorControllerState) << " target state: " << static_cast<int>(sendJointState_.motorControllerState) << " next controlword " << std::bitset<16>(controlWord));
 
-  binary = std::bitset<16>(rxPdo.ControlWord).to_string();
-  MELO_DEBUG_STREAM("Control Word: " << binary)
+  rxPdo.ControlWord = controlWord;
+  rxPdo.TargetPosition = sendJointState_.position;
 
   bus_->writeRxPdo(address_, rxPdo);
 }
@@ -169,82 +108,112 @@ void EposEthercatSlave::shutdown() {
 }
 
 bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
-                                                 const uint16_t currentStatusword,
-                                                 const varileg_lowlevel_controller_msgs::MotorControllerState targetState) {
-  if (EposCommandLibrary::Statuswords::SWITCH_ON_DISABLED.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
-      case MotorControllerState::STATE_OP_ENABLED:
-        EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::READY_TO_SWITCH_ON.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_SWITCHED_ON:
-        EposCommandLibrary::Controlwords::SWITCH_ON.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_OP_ENABLED:
-        EposCommandLibrary::Controlwords::SWITCH_ON_ENABLE_OP.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
-        EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::SWITCHED_ON.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_OP_ENABLED:
-        EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
-        EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
-        EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::OP_ENABLED.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
-        EposCommandLibrary::Controlwords::QUICK_STOP.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_SWITCHED_ON:
-        EposCommandLibrary::Controlwords::DISABLE_OP.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_READY_TO_SWITCH_ON:
-        EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
-        EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::QUICK_STOP_ACTIVE.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_OP_ENABLED:
-        EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
-        return true;
-      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
-        EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::FAULT.isActive(currentStatusword)) {
-    switch (targetState.state) {
-      case MotorControllerState::STATE_SWITCH_ON_DISABLED:
-        EposCommandLibrary::Controlwords::FAULT_RESET.apply(controlword);
-        return true;
-    }
-  } else if (EposCommandLibrary::Statuswords::FAULT_REACTION_ACTIVE.isActive(currentStatusword)) {
-    MELO_INFO_STREAM("Doing nothing, will be autotransfered to state FAULT.")
-    return true;
-  } else if (EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON.isActive(currentStatusword)) {
-    MELO_INFO_STREAM("Doing nothing, will be autotransfered to state SWITCH ON DISABLED.")
-    return true;
-  } else {
-    MELO_ERROR_STREAM("Unknown Statusword: " << currentStatusword);
-    return false;
+                                                 const MotorControllerState &currentState,
+                                                 const MotorControllerState &targetState) {
+  switch (currentState) {
+    case MotorControllerState::STATE_UNKNOWN:
+      return false;
+    case MotorControllerState::STATE_NOT_READY_TO_SWITCH_ON: MELO_INFO_STREAM(
+        "Doing nothing, will be autotransfered to state SWITCH ON DISABLED.")
+      return true;
+    case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+      switch (targetState) {
+        case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+        case MotorControllerState::STATE_OP_ENABLED:
+          EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
+          return true;
+      }
+      break;
+    case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+      switch (targetState) {
+        case MotorControllerState::STATE_SWITCHED_ON:
+          EposCommandLibrary::Controlwords::SWITCH_ON.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_OP_ENABLED:
+          EposCommandLibrary::Controlwords::SWITCH_ON_ENABLE_OP.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
+          return true;
+      }
+      break;
+    case MotorControllerState::STATE_SWITCHED_ON:
+      switch (targetState) {
+        case MotorControllerState::STATE_OP_ENABLED:
+          EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+          EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
+          return true;
+      }
+      break;
+    case MotorControllerState::STATE_OP_ENABLED:
+      switch (targetState) {
+        case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
+          EposCommandLibrary::Controlwords::QUICK_STOP.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_SWITCHED_ON:
+          EposCommandLibrary::Controlwords::DISABLE_OP.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+          EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
+          return true;
+      }
+      break;
+    case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
+      switch (targetState) {
+        case MotorControllerState::STATE_OP_ENABLED:
+          EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
+          return true;
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
+          return true;
+      }
+      break;
+    case MotorControllerState::STATE_FAULT_REACTION_ACTIVE: MELO_INFO_STREAM("Doing nothing, will be autotransfered to state FAULT.")
+      return true;
+    case MotorControllerState::STATE_FAULT:
+      switch (targetState) {
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::FAULT_RESET.apply(controlword);
+          return true;
+      }
+      break;
   }
 
-  MELO_ERROR_STREAM("Target State: " << targetState << " can't be reached from current Statusword: " << currentStatusword);
+  MELO_ERROR_STREAM(
+      "Target State: " << static_cast<int>(targetState) << " can't be reached from current State: " << static_cast<int>(currentState));
   return false;
+}
+
+void EposEthercatSlave::setSendJointState(const ExtendedJointState &sendJointState) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  sendJointState_ = sendJointState;
+}
+
+const ExtendedJointState &EposEthercatSlave::getReceiveJointState() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  return receiveJointState_;
+}
+
+MotorControllerState EposEthercatSlave::getMotorControllerState(const uint16_t &statusword) {
+  for (const auto &it : STATE_STATUSWORD_MAP) {
+    if (it.second.isActive(statusword)) {
+      MELO_INFO_STREAM("Mapping Statusword code " << std::bitset<16>(statusword) << " to state " << static_cast<int>(it.first));
+      return it.first;
+    }
+  }
+
+  MELO_ERROR_STREAM("Unknown Statusword: " << statusword);
+  return MotorControllerState::STATE_UNKNOWN;
 }
 
 }

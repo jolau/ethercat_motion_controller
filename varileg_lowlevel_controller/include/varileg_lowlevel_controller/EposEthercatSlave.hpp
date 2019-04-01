@@ -10,8 +10,9 @@
 #include <soem_interface/EthercatSlaveBase.hpp>
 #include "RxPdo.hpp"
 #include "TxPdo.hpp"
-#include "varileg_lowlevel_controller_msgs/MotorControllerState.h"
-#include <varileg_lowlevel_controller/EposCommandLibrary.hpp>
+#include "ExtendedJointState.hpp"
+#include "EposCommandLibrary.hpp"
+#include "MotorControllerState.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -31,43 +32,47 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
 
   bool startup() override;
-  void updateRead() override;
-  void updateWrite() override;
+  void readInbox();
+  void writeOutbox();
   void shutdown() override;
+
+  void setSendJointState(const ExtendedJointState &sendJointState);
+  const ExtendedJointState &getReceiveJointState() const;
 
   uint8_t readNodeId();
  private:
   bool applyNextStateTransition(uint16_t &controlword,
-                                const uint16_t currentStatusword,
-                                const varileg_lowlevel_controller_msgs::MotorControllerState targetState);
+                                const MotorControllerState &currentState,
+                                const MotorControllerState &targetState);
+  MotorControllerState getMotorControllerState(const uint16_t &statusword);
 
-  const std::map<uint8_t, Statusword> STATE_STATUSWORD_MAP
+  const std::map<MotorControllerState, Statusword> STATE_STATUSWORD_MAP
       {
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_NOT_READY_TO_SWITCH_ON,
+          {MotorControllerState::STATE_NOT_READY_TO_SWITCH_ON,
            EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_SWITCH_ON_DISABLED,
+          {MotorControllerState::STATE_SWITCH_ON_DISABLED,
            EposCommandLibrary::Statuswords::SWITCH_ON_DISABLED},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_READY_TO_SWITCH_ON,
+          {MotorControllerState::STATE_READY_TO_SWITCH_ON,
            EposCommandLibrary::Statuswords::READY_TO_SWITCH_ON},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_SWITCHED_ON,
+          {MotorControllerState::STATE_SWITCHED_ON,
            EposCommandLibrary::Statuswords::SWITCHED_ON},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED,
+          {MotorControllerState::STATE_OP_ENABLED,
            EposCommandLibrary::Statuswords::OP_ENABLED},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_QUICK_STOP_ACTIVE,
+          {MotorControllerState::STATE_QUICK_STOP_ACTIVE,
            EposCommandLibrary::Statuswords::QUICK_STOP_ACTIVE},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_FAULT_REACTION_ACTIVE,
+          {MotorControllerState::STATE_FAULT_REACTION_ACTIVE,
            EposCommandLibrary::Statuswords::FAULT_REACTION_ACTIVE},
-          {varileg_lowlevel_controller_msgs::MotorControllerState::STATE_FAULT, EposCommandLibrary::Statuswords::FAULT}
+          {MotorControllerState::STATE_FAULT, EposCommandLibrary::Statuswords::FAULT}
       };
 
   const std::string name_;
   PdoInfo pdoInfo_;
 
+  ExtendedJointState sendJointState_;
+  ExtendedJointState receiveJointState_;
+
   //! Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
-
-  TxPdo tx_pdo_;
-  bool ready_;
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;

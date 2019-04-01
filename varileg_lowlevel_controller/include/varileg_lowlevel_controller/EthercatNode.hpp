@@ -6,6 +6,8 @@
 #include "EposEthercatSlave.hpp"
 #include "soem_interface/EthercatBusBase.hpp"
 #include "EposEthercatSlaveManager.hpp"
+#include "varileg_lowlevel_controller_msgs/MotorControllerState.h"
+#include "varileg_lowlevel_controller_msgs/ExtendedJointStates.h"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
