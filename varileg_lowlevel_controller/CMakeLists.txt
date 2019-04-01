@@ -51,7 +51,8 @@ add_library(${PROJECT_NAME}
   src/EposEthercatSlaveManager.cpp
   include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp
   src/examples/EposExampleNode.cpp
-  )
+  include/varileg_lowlevel_controller/ExtendedJointState.hpp
+  include/varileg_lowlevel_controller/MotorControllerState.hpp)
 
 
 target_link_libraries(${PROJECT_NAME}

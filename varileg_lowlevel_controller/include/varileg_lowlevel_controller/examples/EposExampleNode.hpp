@@ -16,8 +16,8 @@ namespace examples {
 class EposExampleNode : public any_node::Node {
  public:
   EposExampleNode() = delete; // constructor needs to take a shared_ptr to a ros::Nodehandle instance.
-  EposExampleNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh) {
-    bus_ = std::make_shared<soem_interface::EthercatBusBase>("eth0");
+  EposExampleNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh), eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()) {
+    bus_ = std::make_shared<soem_interface::EthercatBusBase>("ens9");
   }
 
   ~EposExampleNode() override {
@@ -38,6 +38,7 @@ class EposExampleNode : public any_node::Node {
   soem_interface::EthercatBusBasePtr bus_;
   std::vector<soem_interface::EthercatSlaveBasePtr> slaves_;
   EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
+  EposEthercatSlavePtr eposEthercatSlave_;
 };
 }
 }

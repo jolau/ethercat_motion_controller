@@ -3,11 +3,27 @@
 //
 
 #include <varileg_lowlevel_controller/examples/EposExampleNode.hpp>
+#include <varileg_lowlevel_controller_msgs/MotorControllerState.h>
 
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
 
+  std::map<std::string, int> joint2eposMap;
+  joint2eposMap.insert(std::make_pair("hip_left", 3));
+  eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
+  eposEthercatSlave_ = std::make_shared<EposEthercatSlave>("epos1", bus_, 1);
+  slaves_.push_back(eposEthercatSlave_);
+
+  if(!bus_->startup(slaves_)){
+    MELO_ERROR("Startup of bus failed.");
+    return false;
+  }
+
+  if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlave_)) {
+    MELO_ERROR("Could add epos to manager.")
+    return false;
+  };
 
   constexpr double defaultWorkerTimeStep = .01;
   constexpr int priority = 10;
@@ -36,13 +52,37 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
   // The frequency is defined in the time_step rosparam.
   MELO_INFO("update called");
 
-  bus_->receiveBuffer();
+  bus_->receiveInbox();
 
-  eposEthercatSlaveManager_->updateWriteAll();
+  eposEthercatSlave_->readInbox();
 
-  eposEthercatSlaveManager_->updateReadAll();
+  ExtendedJointState extendedJointState;
+  extendedJointState.motorControllerState = MotorControllerState::STATE_OP_ENABLED;
+  eposEthercatSlave_->setSendJointState(extendedJointState);
 
-  bus_->sendBuffer();
+  eposEthercatSlave_->writeOutbox();
+
+
+ /* varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->updateReadAll();
+
+  for (int i = 0; i < extendedJointStates.name.size(); ++i) {
+    if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
+      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Actual Position: " << extendedJointStates.position[i]);
+      if (extendedJointStates.position[i] < 5000) {
+        extendedJointStates.position[i] = 5100;
+      } else {
+        extendedJointStates.position[i]= 0;
+      }
+      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Send Target Position: " << extendedJointStates.position[i]);
+    } else {
+      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Enabling Drive");
+      extendedJointStates.motor_controller_state[i] = varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED;
+    }
+  }
+
+  eposEthercatSlaveManager_->updateWriteAll(extendedJointStates);*/
+
+  bus_->sendOutbox();
 
   return true;
 }

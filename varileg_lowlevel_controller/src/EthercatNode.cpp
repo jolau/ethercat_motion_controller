@@ -1,6 +1,4 @@
 #include "varileg_lowlevel_controller/EthercatNode.hpp"
-#include "varileg_lowlevel_controller_msgs/MotorControllerState.h"
-#include "varileg_lowlevel_controller_msgs/ExtendedJointState.h"
 
 namespace varileg_lowlevel_controller {
 
@@ -77,9 +75,9 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 
   busManager_->receiveAllBusBuffers();
 
-  eposEthercatSlaveManager_->updateWriteAll();
+ // eposEthercatSlaveManager_->updateWriteAll();
 
-  eposEthercatSlaveManager_->updateReadAll();
+  //eposEthercatSlaveManager_->updateReadAll();
 
   busManager_->sendAllBusBuffers();
 

@@ -21,7 +21,7 @@ find_package(catkin REQUIRED
 add_message_files(
   FILES
   MotorControllerState.msg
-  ExtendedJointState.msg
+  ExtendedJointStates.msg
 )
 
 #add_service_files(
