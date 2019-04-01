@@ -91,12 +91,12 @@ class EthercatBusBase {
   /*!
    * Update step 1: Read all PDOs.
    */
-  void receiveBuffer();
+  void receiveInbox();
 
   /*!
    * Update step 2: Write all PDOs.
    */
-  void sendBuffer();
+  void sendOutbox();
 
   /*!
    * Shutdown the bus communication.

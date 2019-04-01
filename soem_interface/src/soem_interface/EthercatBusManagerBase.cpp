@@ -25,14 +25,14 @@ bool EthercatBusManagerBase::startupAllBuses(const std::map<std::string, std::ve
 void EthercatBusManagerBase::receiveAllBusBuffers() {
   std::lock_guard<std::recursive_mutex> lock(busMutex_);
   for (auto& bus : buses_) {
-    bus.second->receiveBuffer();
+    bus.second->receiveInbox();
   }
 }
 
 void EthercatBusManagerBase::sendAllBusBuffers() {
   std::lock_guard<std::recursive_mutex> lock(busMutex_);
   for (auto& bus : buses_) {
-    bus.second->sendBuffer();
+    bus.second->sendOutbox();
   }
 }
 

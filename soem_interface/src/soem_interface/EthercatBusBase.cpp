@@ -157,10 +157,11 @@ bool EthercatBusBase::startup(const std::vector<EthercatSlaveBasePtr> &slaves) {
   }
 
   isStartedUp_ = true;
+
   return true;
 }
 
-void EthercatBusBase::receiveBuffer() {
+void EthercatBusBase::receiveInbox() {
   if (!sentProcessData_) {
     MELO_DEBUG_STREAM("No process data to read.");
     return;
@@ -182,7 +183,7 @@ void EthercatBusBase::receiveBuffer() {
   }
 }
 
-void EthercatBusBase::sendBuffer() {
+void EthercatBusBase::sendOutbox() {
   if (sentProcessData_) {
     MELO_DEBUG_STREAM("Sending new process data without reading the previous one.");
   }

@@ -26,8 +26,8 @@ class EthercatSlaveBase {
   virtual std::string getName() const = 0;
 
   virtual bool startup() = 0;
-  virtual void updateRead() = 0;
-  virtual void updateWrite() = 0;
+ // virtual void updateRead() = 0;
+  //virtual void updateWrite() = 0;
   virtual void shutdown() = 0;
 
   virtual PdoInfo getCurrentPdoInfo() const = 0;
