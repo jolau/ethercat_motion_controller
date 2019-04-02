@@ -41,7 +41,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   uint8_t readNodeId();
  private:
-  bool applyNextStateTransition(uint16_t &controlword,
+  static bool applyNextStateTransition(uint16_t &controlword,
                                 const MotorControllerState &currentState,
                                 const MotorControllerState &targetState);
   MotorControllerState getMotorControllerState(const uint16_t &statusword);

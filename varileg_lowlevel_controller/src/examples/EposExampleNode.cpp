@@ -10,10 +10,14 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
 
   std::map<std::string, int> joint2eposMap;
   joint2eposMap.insert(std::make_pair("hip_left", 3));
+  joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
-  eposEthercatSlave_ = std::make_shared<EposEthercatSlave>("epos1", bus_, 1);
-  slaves_.push_back(eposEthercatSlave_);
+  EposEthercatSlavePtr eposEthercatSlaveOne = std::make_shared<EposEthercatSlave>("epos1", bus_, 1);
+  slaves_.push_back(eposEthercatSlaveOne);
+
+  //EposEthercatSlavePtr eposEthercatSlaveTwo = std::make_shared<EposEthercatSlave>("epos2", bus_, 2);
+  //slaves_.push_back(eposEthercatSlaveTwo);
 
   if(!bus_->startup(slaves_)){
     MELO_ERROR("Startup of bus failed.");
@@ -22,10 +26,15 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
 
   bus_->setState(EC_STATE_OPERATIONAL);
 
-  if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlave_)) {
-    MELO_ERROR("Could add epos to manager.")
+  if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveOne)) {
+    MELO_ERROR("Could add epos one to manager.")
     return false;
   };
+
+ /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
+    MELO_ERROR("Could add epos two to manager.")
+    return false;
+  };*/
 
   constexpr double defaultWorkerTimeStep = .01;
   constexpr int priority = 10;
@@ -56,7 +65,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
 
   bus_->receiveInbox();
 
-  eposEthercatSlave_->readInbox();
+//  eposEthercatSlave_->readInbox();
 
  /* ExtendedJointState extendedJointState;
   extendedJointState.motorControllerState = MotorControllerState::STATE_OP_ENABLED;
@@ -70,10 +79,17 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
     if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
       MELO_INFO_STREAM(extendedJointStates.name[i] << ": Actual Position: " << extendedJointStates.position[i]);
-      if (extendedJointStates.position[i] < 5000) {
-        extendedJointStates.position[i] = 5100;
+      //extendedJointStates.position[i] = 0;
+      if(goUp) {
+        if (extendedJointStates.position[i] >= 5000) {
+          goUp = false;
+        }
+          extendedJointStates.position[i] = 5100;
       } else {
-        extendedJointStates.position[i]= 0;
+        if(extendedJointStates.position[i] <= 0) {
+          goUp = true;
+        }
+        extendedJointStates.position[i] = -100;
       }
       MELO_INFO_STREAM(extendedJointStates.name[i] << ": Send Target Position: " << extendedJointStates.position[i]);
     } else {
