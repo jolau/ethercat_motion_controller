@@ -71,6 +71,9 @@ void EposEthercatSlave::readInbox() {
 
   receiveJointState_.motorControllerState = getMotorControllerState(txPdo.StatusWord);
   receiveJointState_.position = txPdo.PositionActualValue;
+
+  MELO_INFO_STREAM(name_ << ": RSF Encoder: " << ((float) txPdo.PositionActualValue)  << " and MILE Encoder: " << ((float) txPdo.PositionSecondEncoder) << " diff: " << (txPdo.PositionActualValue - txPdo.PositionSecondEncoder));
+  MELO_INFO_STREAM(name_ << ": RSF Encoder: " << ((float) txPdo.PositionActualValue / 40181)  << " and MILE Encoder: " << ((float) txPdo.PositionSecondEncoder / 2176000))
 }
 
 void EposEthercatSlave::writeOutbox() {

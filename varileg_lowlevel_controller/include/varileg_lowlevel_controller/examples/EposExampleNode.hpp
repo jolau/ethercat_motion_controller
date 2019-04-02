@@ -38,7 +38,7 @@ class EposExampleNode : public any_node::Node {
   soem_interface::EthercatBusBasePtr bus_;
   std::vector<soem_interface::EthercatSlaveBasePtr> slaves_;
   EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
-  EposEthercatSlavePtr eposEthercatSlave_;
+  bool goUp = true;
 };
 }
 }
