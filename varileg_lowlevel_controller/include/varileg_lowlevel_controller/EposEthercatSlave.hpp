@@ -10,30 +10,72 @@
 #include <soem_interface/EthercatSlaveBase.hpp>
 #include "RxPdo.hpp"
 #include "TxPdo.hpp"
+#include "ExtendedJointState.hpp"
+#include "EposCommandLibrary.hpp"
+#include "MotorControllerState.hpp"
 
 namespace varileg_lowlevel_controller {
- class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
-  public:
-   EposEthercatSlave() = delete;
-    EposEthercatSlave(const std::string& name, const soem_interface::EthercatBusBasePtr& bus, const uint32_t address);
+class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
+ public:
+  EposEthercatSlave() = delete;
+  EposEthercatSlave(const std::string &name, const soem_interface::EthercatBusBasePtr &bus, const uint32_t address);
   ~EposEthercatSlave() override = default;
 
-   bool startup() override;
-   void updateRead() override;
-   void updateWrite() override;
-   void shutdown() override;
+  std::string getName() const override;
 
-   std::string getName() const override;
-   PdoInfo getCurrentPdoInfo() const override;
+  PdoInfo getCurrentPdoInfo() const override;
 
-  private:
-   const std::string name_;
-   TxPdo tx_pdo_;
-   bool ready_;
-   PdoInfo pdoInfo_;
+  /**
+  * Was startup successfully called?
+  * @return
+  */
+  const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
+
+  bool startup() override;
+  void readInbox();
+  void writeOutbox();
+  void shutdown() override;
+
+  void setSendJointState(const ExtendedJointState &sendJointState);
+  const ExtendedJointState &getReceiveJointState() const;
+
+  uint8_t readNodeId();
+ private:
+  static bool applyNextStateTransition(uint16_t &controlword,
+                                const MotorControllerState &currentState,
+                                const MotorControllerState &targetState);
+  MotorControllerState getMotorControllerState(const uint16_t &statusword);
+
+  const std::map<MotorControllerState, Statusword> STATE_STATUSWORD_MAP
+      {
+          {MotorControllerState::STATE_NOT_READY_TO_SWITCH_ON,
+           EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON},
+          {MotorControllerState::STATE_SWITCH_ON_DISABLED,
+           EposCommandLibrary::Statuswords::SWITCH_ON_DISABLED},
+          {MotorControllerState::STATE_READY_TO_SWITCH_ON,
+           EposCommandLibrary::Statuswords::READY_TO_SWITCH_ON},
+          {MotorControllerState::STATE_SWITCHED_ON,
+           EposCommandLibrary::Statuswords::SWITCHED_ON},
+          {MotorControllerState::STATE_OP_ENABLED,
+           EposCommandLibrary::Statuswords::OP_ENABLED},
+          {MotorControllerState::STATE_QUICK_STOP_ACTIVE,
+           EposCommandLibrary::Statuswords::QUICK_STOP_ACTIVE},
+          {MotorControllerState::STATE_FAULT_REACTION_ACTIVE,
+           EposCommandLibrary::Statuswords::FAULT_REACTION_ACTIVE},
+          {MotorControllerState::STATE_FAULT, EposCommandLibrary::Statuswords::FAULT}
+      };
+
+  const std::string name_;
+  PdoInfo pdoInfo_;
+
+  ExtendedJointState sendJointState_;
+  ExtendedJointState receiveJointState_;
+
+  //! Bool indicating if slave and bus startup was called
+  bool isStartedUp_{false};
 };
 
- using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;
+using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;
 
 }
 

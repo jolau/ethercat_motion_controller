@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="time_step"                 default="0.01"/>
+  <!--<arg name="launch_prefix"             default="nice -n -10" />-->
+  <!--<arg name="launch_prefix_gdb"         default="gdb -ex run &#45;&#45;args" />-->
+
+  <!--launch-prefix="$(arg launch_prefix)"-->
+  <node name="epos_example" pkg="varileg_lowlevel_controller" type="epos_example_node"  output="screen" >
+    <param name="time_step" type="double" value="$(arg time_step)"/>
+  </node>
+</launch>
