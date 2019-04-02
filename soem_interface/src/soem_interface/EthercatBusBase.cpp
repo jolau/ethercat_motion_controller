@@ -43,21 +43,7 @@ int EthercatBusBase::getNumberOfSlaves() const {
   return *ecatContext_.slavecount; 
 }
 
-bool EthercatBusBase::addSlave(const EthercatSlaveBasePtr& slave) {
-  for (const auto& existingSlave : slaves_) {
-    if (slave->getAddress() == existingSlave->getAddress()) {
-      MELO_ERROR_STREAM("[" << getName() << "] "
-                            << "Slave '" << existingSlave->getName() << "' and slave '" << slave->getName()
-                            << "' have identical addresses (" << slave->getAddress() << ").");
-      return false;
-    }
-  }
-
-  slaves_.push_back(slave);
-  return true;
-}
-
-bool EthercatBusBase::startup() {
+bool EthercatBusBase::startup(const std::vector<EthercatSlaveBasePtr> &slaves) {
   std::lock_guard<std::recursive_mutex> guard(contextMutex_);
   /*
    * Followed by start of the application we need to set up the NIC to be used as
@@ -103,7 +89,7 @@ bool EthercatBusBase::startup() {
 
   // Check if the given slave addresses are valid.
   bool slaveAddressesAreOk = true;
-  for (const auto& slave : slaves_) {
+  for (const auto& slave : slaves) {
     auto address = static_cast<int>(slave->getAddress());
     if (address == 0) {
       MELO_ERROR_STREAM("[" << getName() << "] "
@@ -121,11 +107,12 @@ bool EthercatBusBase::startup() {
     return false;
   }
 
+  // TODO: uncomment?
   // Disable symmetrical transfers.
   //ecatContext_.grouplist[0].blockLRW = 1;
 
   // Initialize the communication interfaces of all slaves.
-  for (auto& slave : slaves_) {
+  for (auto& slave : slaves) {
     if (!slave->startup()) {
       MELO_ERROR_STREAM("[" << getName() << "] "
                             << "Slave '" << slave->getName() << "' was not initialized successfully.");
@@ -142,7 +129,7 @@ bool EthercatBusBase::startup() {
 
   // Check if the size of the IO mapping fits our slaves.
   bool ioMapIsOk = true;
-  for (const auto& slave : slaves_) {
+  for (const auto& slave : slaves) {
     const EthercatSlaveBase::PdoInfo pdoInfo = slave->getCurrentPdoInfo();
     if (pdoInfo.rxPdoSize_ != ecatContext_.slavelist[slave->getAddress()].Obytes) {
       MELO_ERROR_STREAM("[" << getName() << "] "
@@ -169,10 +156,12 @@ bool EthercatBusBase::startup() {
     memset(ecatContext_.slavelist[slave].outputs, 0, ecatContext_.slavelist[slave].Obytes);
   }
 
+  isStartedUp_ = true;
+
   return true;
 }
 
-void EthercatBusBase::updateRead() {
+void EthercatBusBase::receiveInbox() {
   if (!sentProcessData_) {
     MELO_DEBUG_STREAM("No process data to read.");
     return;
@@ -192,21 +181,11 @@ void EthercatBusBase::updateRead() {
     MELO_WARN_THROTTLE_STREAM(1.0, "Working counter is too low: " << wkc_.load() << " < " << getExpectedWorkingCounter());
     return;
   }
-
-  //! Each slave attached to this bus reads its data to the buffer.
-  for (auto& slave : slaves_) {
-    slave->updateRead();
-  }
 }
 
-void EthercatBusBase::updateWrite() {
+void EthercatBusBase::sendOutbox() {
   if (sentProcessData_) {
     MELO_DEBUG_STREAM("Sending new process data without reading the previous one.");
-  }
-
-  //! Each slave attached to this bus write its data to the buffer.
-  for (auto& slave : slaves_) {
-    slave->updateWrite();
   }
 
   //! Send the EtherCAT data.
@@ -216,7 +195,7 @@ void EthercatBusBase::updateWrite() {
   sentProcessData_ = true;
 }
 
-void EthercatBusBase::shutdown() {
+void EthercatBusBase::shutdown(const std::vector<EthercatSlaveBasePtr> &slaves) {
   std::lock_guard<std::recursive_mutex> guard(contextMutex_);
   // Set the slaves to state Init.
   if (getNumberOfSlaves() > 0) {
@@ -224,7 +203,7 @@ void EthercatBusBase::shutdown() {
     waitForState(EC_STATE_INIT);
   }
 
-  for (auto& slave : slaves_) {
+  for (auto& slave : slaves) {
     slave->shutdown();
   }
 

@@ -52,6 +52,12 @@ class EthercatBusBase {
    */
   const any_measurements::Time& getUpdateWriteStamp() const { return updateWriteStamp_; }
 
+  /**
+   * Was startup successfully called?
+   * @return
+   */
+  const bool isStartedUp() const { return isStartedUp_; }
+
   /*!
    * Check if a bus is available.
    * @param name Name of the bus.
@@ -77,32 +83,25 @@ class EthercatBusBase {
   int getNumberOfSlaves() const;
 
   /*!
-   * Add an ANYdrive EtherCAT slave.
-   * @slave ANYdrive EtherCAT slave.
-   * @return True if successful.
-   */
-  bool addSlave(const EthercatSlaveBasePtr& slave);
-
-  /*!
    * Startup the bus communication.
    * @return True if successful.
    */
-  bool startup();
+  bool startup(const std::vector<EthercatSlaveBasePtr> &slaves);
 
   /*!
    * Update step 1: Read all PDOs.
    */
-  void updateRead();
+  void receiveInbox();
 
   /*!
    * Update step 2: Write all PDOs.
    */
-  void updateWrite();
+  void sendOutbox();
 
   /*!
    * Shutdown the bus communication.
    */
-  void shutdown();
+  void shutdown(const std::vector<EthercatSlaveBasePtr> &slaves);
 
   /*!
    * Set the desired EtherCAT state machine state.
@@ -225,8 +224,8 @@ class EthercatBusBase {
   //! Name of the bus.
   std::string name_;
 
-  //! List of slaves.
-  std::vector<EthercatSlaveBasePtr> slaves_;
+  //! Bool indicating if bus startup was called
+  bool isStartedUp_{false};
 
   //! Bool indicating whether PDO data has been sent and not read yet.
   bool sentProcessData_{false};
