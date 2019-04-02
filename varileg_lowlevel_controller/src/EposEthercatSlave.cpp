@@ -36,7 +36,7 @@ bool EposEthercatSlave::startup() {
   // set mode to CSP
   if (!bus_->sendSdoWrite(address_,
                           EposCommandLibrary::SDOs::MODES_OF_OPERATION.index,
-                          EposCommandLibrary::wfasdffdsdsafdfssfdallkjlkSDOs::MODES_OF_OPERATION.subindex,
+                          EposCommandLibrary::SDOs::MODES_OF_OPERATION.subindex,
                           true,
                           0X08)) {
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
@@ -118,6 +118,9 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       return true;
     case MotorControllerState::STATE_SWITCH_ON_DISABLED:
       switch (targetState) {
+        case MotorControllerState::STATE_SWITCH_ON_DISABLED:
+          EposCommandLibrary::Controlwords::DISABLE_VOLTAGE.apply(controlword);
+          return true;
         case MotorControllerState::STATE_READY_TO_SWITCH_ON:
         case MotorControllerState::STATE_OP_ENABLED:
           EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
@@ -126,6 +129,9 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       break;
     case MotorControllerState::STATE_READY_TO_SWITCH_ON:
       switch (targetState) {
+        case MotorControllerState::STATE_READY_TO_SWITCH_ON:
+          EposCommandLibrary::Controlwords::SHUTDOWN.apply(controlword);
+          return true;
         case MotorControllerState::STATE_SWITCHED_ON:
           EposCommandLibrary::Controlwords::SWITCH_ON.apply(controlword);
           return true;
@@ -139,6 +145,9 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       break;
     case MotorControllerState::STATE_SWITCHED_ON:
       switch (targetState) {
+        case MotorControllerState::STATE_SWITCHED_ON:
+          EposCommandLibrary::Controlwords::SWITCH_ON.apply(controlword);
+          return true;
         case MotorControllerState::STATE_OP_ENABLED:
           EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
           return true;
@@ -152,6 +161,9 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       break;
     case MotorControllerState::STATE_OP_ENABLED:
       switch (targetState) {
+        case MotorControllerState::STATE_OP_ENABLED:
+          EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
+          return true;
         case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
           EposCommandLibrary::Controlwords::QUICK_STOP.apply(controlword);
           return true;
@@ -168,6 +180,9 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       break;
     case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
       switch (targetState) {
+        case MotorControllerState::STATE_QUICK_STOP_ACTIVE:
+          EposCommandLibrary::Controlwords::QUICK_STOP.apply(controlword);
+          return true;
         case MotorControllerState::STATE_OP_ENABLED:
           EposCommandLibrary::Controlwords::ENABLE_OP.apply(controlword);
           return true;
@@ -180,6 +195,8 @@ bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
       return true;
     case MotorControllerState::STATE_FAULT:
       switch (targetState) {
+        case MotorControllerState::STATE_FAULT:
+          return true;
         case MotorControllerState::STATE_SWITCH_ON_DISABLED:
           EposCommandLibrary::Controlwords::FAULT_RESET.apply(controlword);
           return true;

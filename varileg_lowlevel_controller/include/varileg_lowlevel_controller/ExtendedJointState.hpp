@@ -7,9 +7,12 @@
 
 #include "MotorControllerState.hpp"
 
+namespace varileg_lowlevel_controller {
+
 struct ExtendedJointState {
   MotorControllerState motorControllerState;
   float position;
 };
 
+}
 #endif //VARILEG_LOWLEVEL_CONTROLLER_EXTENDEDJOINTSTATE_HPP
