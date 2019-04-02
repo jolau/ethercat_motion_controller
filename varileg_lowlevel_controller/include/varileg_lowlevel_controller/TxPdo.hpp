@@ -13,6 +13,7 @@ namespace varileg_lowlevel_controller {
 struct TxPdo {
   uint16_t	StatusWord;					//0x6041
   int32_t	PositionActualValue;		//0x6064
+  int32_t   PositionSecondEncoder;
   /*int32_t	VelocityActualValue;		//0x606C
   int16_t	TorqueActualValue;			//0x6077
   uint8_t	ModeOfOperationDisplay;		//0x6061

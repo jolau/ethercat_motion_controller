@@ -2,14 +2,18 @@
 
 #include <std_msgs/String.h>
 
-#include "soem_interface/EthercatBusBase.hpp"
+#include "VarilegEthercatBusManager.hpp"
 #include "EposEthercatSlave.hpp"
+#include "soem_interface/EthercatBusBase.hpp"
+#include "EposEthercatSlaveManager.hpp"
+#include "varileg_lowlevel_controller_msgs/MotorControllerState.h"
+#include "varileg_lowlevel_controller_msgs/ExtendedJointStates.h"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
  public:
   EthercatNode() = delete; // constructor needs to take a shared_ptr to a ros::Nodehandle instance.
-  EthercatNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh) {
+  EthercatNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh), busManager_(std::make_shared<VarilegEthercatBusManager>()), eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()) {
   }
 
   ~EthercatNode() override {
@@ -27,9 +31,11 @@ class EthercatNode : public any_node::Node {
   void subscriberCallback(const std_msgs::StringConstPtr &msg);
 
  private:
-  soem_interface::EthercatBusBasePtr ethercat_bus_;
-  EposEthercatSlavePtr epos_ethercat_slave_one_;
-  EposEthercatSlavePtr eposEthercatSlaveTwo_;
+  VarilegEthercatBusManagerPtr busManager_;
+  std::map<std::string, std::vector<soem_interface::EthercatSlaveBasePtr>> slavesOfBusesMap_;
+  EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
+
+  void setupBusManager();
 };
 
 }
