@@ -40,7 +40,16 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   const ExtendedJointState &getReceiveJointState() const;
 
   uint8_t readNodeId();
+  bool writeInterpolationTimePeriod(uint8_t timePeriod);
+  bool writeOperatingMode(const OperatingMode &operatingMode);
+  OperatingMode readOperatingMode();
  private:
+  template <typename Value>
+  bool writeSDO(const SDO &sdo, const Value value, const bool completeAccess);
+
+  template <typename Value>
+  bool readSDO(const SDO &sdo, Value &value, const bool completeAccess);
+
   static bool applyNextStateTransition(uint16_t &controlword,
                                 const MotorControllerState &currentState,
                                 const MotorControllerState &targetState);

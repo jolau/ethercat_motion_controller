@@ -33,27 +33,8 @@ bool EposEthercatSlave::startup() {
     return false;
   }
 
-  // set mode to CSP
-  if (!bus_->sendSdoWrite(address_,
-                          EposCommandLibrary::SDOs::MODES_OF_OPERATION.index,
-                          EposCommandLibrary::SDOs::MODES_OF_OPERATION.subindex,
-                          true,
-                          0X08)) {
+  if(!writeOperatingMode(OperatingMode::CSP)){
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
-    return false;
-  }
-
-  // get mode
-  int8_t mode = 0;
-  bus_->sendSdoRead(address_,
-                    EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY.index,
-                    EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY.subindex,
-                    false,
-                    mode);
-
-
-  MELO_ERROR_STREAM(name_ << ": CSP mode was not set. Has mode: " << std::to_string(mode) << " asldkjf")
-  if (mode != 0x08) {
     return false;
   }
 
@@ -73,7 +54,9 @@ void EposEthercatSlave::readInbox() {
   receiveJointState_.position = txPdo.PositionActualValue;
 
   MELO_INFO_STREAM(name_ << ": RSF Encoder: " << ((float) txPdo.PositionActualValue)  << " and MILE Encoder: " << ((float) txPdo.PositionSecondEncoder) << " diff: " << (txPdo.PositionActualValue - txPdo.PositionSecondEncoder));
-  MELO_INFO_STREAM(name_ << ": RSF Encoder: " << ((float) txPdo.PositionActualValue / 40181)  << " and MILE Encoder: " << ((float) txPdo.PositionSecondEncoder / 2176000))
+  float correctedRsfPosition = (float) txPdo.PositionActualValue / 40181;
+  float correctedMilePosition = (float) -1 * txPdo.PositionSecondEncoder / 2176000;
+  MELO_INFO_STREAM(name_ << ": RSF Encoder: " << correctedRsfPosition << " and MILE Encoder: " << correctedMilePosition << " diff: " << (correctedMilePosition - correctedRsfPosition))
 }
 
 void EposEthercatSlave::writeOutbox() {
@@ -92,22 +75,65 @@ void EposEthercatSlave::writeOutbox() {
   bus_->writeRxPdo(address_, rxPdo);
 }
 
+void EposEthercatSlave::shutdown() {
+  RxPdo rxPdo;
+  rxPdo.ControlWord = 0;
+  bus_->writeRxPdo(address_, rxPdo);
+}
+
+bool EposEthercatSlave::writeOperatingMode(const OperatingMode &operatingMode) {
+  uint8_t operatingModeCommand = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(operatingMode);
+
+  // set mode to CSP
+  if(!writeSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION, operatingModeCommand, true)) {
+    MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
+    return false;
+  }
+
+  if(operatingMode != readOperatingMode()) {
+    MELO_ERROR_STREAM("Operating mode could not be set");
+    return false;
+  }
+
+  return true;
+}
+
+OperatingMode EposEthercatSlave::readOperatingMode() {
+  int8_t mode = 0;
+
+  readSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY, mode, false);
+
+  return EposCommandLibrary::EposOperatingMode::toOperatingMode(mode);
+}
+
 uint8_t EposEthercatSlave::readNodeId() {
   uint8_t nodeId = 0;
-  if (!bus_->sendSdoRead(address_,
-                         EposCommandLibrary::SDOs::NODE_ID.index,
-                         EposCommandLibrary::SDOs::NODE_ID.subindex,
-                         false,
-                         nodeId)) {
+  if(!readSDO(EposCommandLibrary::SDOs::NODE_ID, nodeId, false)) {
     MELO_ERROR_STREAM("Could not read NodeID of " << name_);
   }
   return nodeId;
 }
 
-void EposEthercatSlave::shutdown() {
-  RxPdo rxPdo;
-  rxPdo.ControlWord = 0;
-  bus_->writeRxPdo(address_, rxPdo);
+bool EposEthercatSlave::writeInterpolationTimePeriod(uint8_t timePeriod) {
+  return writeSDO(EposCommandLibrary::SDOs::INTERPOLATION_TIME_PERIOD_VALUE, timePeriod, true);
+}
+
+template<typename Value>
+bool EposEthercatSlave::writeSDO(const SDO &sdo, const Value value, const bool completeAccess) {
+  if(!sendSdoWrite(sdo.index, sdo.subindex, completeAccess, value)) {
+    MELO_ERROR_STREAM("Write SDO: " << sdo.name << " with value: " << value << " didn't work.")
+    return false;
+  }
+  return true;
+}
+
+template<typename Value>
+bool EposEthercatSlave::readSDO(const SDO &sdo, Value &value, const bool completeAccess) {
+  if(!sendSdoRead(sdo.index, sdo.subindex, completeAccess, value)) {
+    MELO_ERROR_STREAM("Read SDO: " << sdo.name << " didn't work.")
+    return false;
+  }
+  return true;
 }
 
 bool EposEthercatSlave::applyNextStateTransition(uint16_t &controlword,
@@ -235,5 +261,6 @@ MotorControllerState EposEthercatSlave::getMotorControllerState(const uint16_t &
   MELO_ERROR_STREAM("Unknown Statusword: " << statusword);
   return MotorControllerState::STATE_UNKNOWN;
 }
+
 
 }

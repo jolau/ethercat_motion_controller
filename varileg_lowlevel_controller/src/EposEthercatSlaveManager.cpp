@@ -25,7 +25,7 @@ bool EposEthercatSlaveManager::addEposEthercatSlave(varileg_lowlevel_controller:
     }
   }
 
-  MELO_ERROR_STREAM("Unmapped EPOS EtherCAT slave with NodeID found: " << nodeId);
+  MELO_ERROR_STREAM("Unmapped EPOS EtherCAT slave with NodeID found: " << static_cast<int>(nodeId));
   return false;
 }
 
