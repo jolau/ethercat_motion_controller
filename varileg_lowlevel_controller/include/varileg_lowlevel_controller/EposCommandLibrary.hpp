@@ -89,9 +89,9 @@ const Controlword DISABLE_OP =          {0x0007, 0x008F};
 const Controlword ENABLE_OP =           {0x000F, 0x008F};
 const Controlword FAULT_RESET =         {0x0080, 0x0080};
 
-const Controlword HOMING_OP_START =     {0x0008, 0x0008};
-const Controlword HOMING_HALT_ENABLE =  {0x0080, 0x0080};
-const Controlword HOMING_HALT_DISABLE = {0x0000, 0x0080};
+const Controlword HOMING_OP_START =     {0x0010, 0x0010};
+const Controlword HOMING_HALT_ENABLE =  {0x0100, 0x0100};
+const Controlword HOMING_HALT_DISABLE = {0x0000, 0x0100};
 }
 
 namespace Statuswords {
@@ -104,10 +104,10 @@ const Statusword QUICK_STOP_ACTIVE        = {0x0007, 0x006F};
 const Statusword FAULT_REACTION_ACTIVE    = {0x000F, 0x006F};
 const Statusword FAULT                    = {0x0008, 0x006F};
 
-const Statusword HOMING_IN_PROGRESS       = {0x0000, 0x1A00};
-const Statusword HOMING_INTERRUPTED       = {0x0200, 0x1A00};
-const Statusword HOMING_SUCCESSFUL        = {0x0800, 0x1800};
-const Statusword HOMING_ERROR             = {0x1000, 0x1800};
+const Statusword HOMING_IN_PROGRESS       = {0x0000, 0x3400};
+const Statusword HOMING_INTERRUPTED       = {0x0400, 0x3400};
+const Statusword HOMING_SUCCESSFUL        = {0x1000, 0x3000};
+const Statusword HOMING_ERROR             = {0x2000, 0x3000};
 }
 
 
