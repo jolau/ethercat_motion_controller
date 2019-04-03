@@ -8,6 +8,10 @@
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
 
+  constexpr double defaultWorkerTimeStep = .01;
+  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  constexpr int priority = 10;
+
   std::map<std::string, int> joint2eposMap;
   joint2eposMap.insert(std::make_pair("hip_left", 3));
   joint2eposMap.insert(std::make_pair("knee_left", 2));
@@ -24,6 +28,8 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   }
 
+  eposEthercatSlaveOne->writeInterpolationTimePeriod(workerTimeStep);
+
   bus_->setState(EC_STATE_OPERATIONAL);
 
   if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveOne)) {
@@ -36,9 +42,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };*/
 
-  constexpr double defaultWorkerTimeStep = .01;
-  constexpr int priority = 10;
-  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+
   addWorker("eposExampleNode::updateWorker", workerTimeStep, &EposExampleNode::update, this, priority);
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
@@ -79,7 +83,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
     if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
       MELO_INFO_STREAM(extendedJointStates.name[i] << ": Actual Position: " << extendedJointStates.position[i]);
-      //extendedJointStates.position[i] = 0;
+
       if(goUp) {
         if (extendedJointStates.position[i] >= 5000) {
           goUp = false;
@@ -91,6 +95,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
         }
         extendedJointStates.position[i] = -100;
       }
+      //extendedJointStates.position[i] = 10000;
       MELO_INFO_STREAM(extendedJointStates.name[i] << ": Send Target Position: " << extendedJointStates.position[i]);
     } else {
       MELO_INFO_STREAM(extendedJointStates.name[i] << ": Enabling Drive");
