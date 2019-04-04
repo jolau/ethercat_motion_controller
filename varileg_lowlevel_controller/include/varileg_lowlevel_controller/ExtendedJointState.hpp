@@ -5,12 +5,11 @@
 #ifndef VARILEG_LOWLEVEL_CONTROLLER_EXTENDEDJOINTSTATE_HPP
 #define VARILEG_LOWLEVEL_CONTROLLER_EXTENDEDJOINTSTATE_HPP
 
-#include "MotorControllerState.hpp"
+#include "DeviceState.hpp"
 
 namespace varileg_lowlevel_controller {
 
 struct ExtendedJointState {
-  MotorControllerState motorControllerState;
   float position;
 };
 
