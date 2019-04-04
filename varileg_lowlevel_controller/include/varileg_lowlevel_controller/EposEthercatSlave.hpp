@@ -12,7 +12,8 @@
 #include "TxPdo.hpp"
 #include "ExtendedJointState.hpp"
 #include "EposCommandLibrary.hpp"
-#include "MotorControllerState.hpp"
+#include "DeviceState.hpp"
+#include "HomingMethod.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -37,12 +38,19 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void shutdown() override;
 
   void setSendJointState(const ExtendedJointState &sendJointState);
+  void setSendHomingState(HomingState sendHomingState);
+  void setSendDeviceState(DeviceState sendMotorControllerState);
+
   const ExtendedJointState &getReceiveJointState() const;
+  const HomingState getReceiveHomingState() const;
+  const DeviceState getReceiveDeviceState() const;
 
   uint8_t readNodeId();
+  OperatingMode readOperatingMode();
+
   bool writeInterpolationTimePeriod(uint8_t timePeriod);
   bool writeOperatingMode(const OperatingMode &operatingMode);
-  OperatingMode readOperatingMode();
+  bool writeHomingMethod(const HomingMethod &homingMethod);
  private:
   template <typename Value>
   bool writeSDO(const SDO &sdo, const Value value, const bool completeAccess);
@@ -50,37 +58,28 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   template <typename Value>
   bool readSDO(const SDO &sdo, Value &value, const bool completeAccess);
 
-  static bool applyNextStateTransition(uint16_t &controlword,
-                                const MotorControllerState &currentState,
-                                const MotorControllerState &targetState);
-  MotorControllerState getMotorControllerState(const uint16_t &statusword);
+  static bool applyNextDeviceStateTransition(uint16_t &controlword,
+                                             const DeviceState &currentState,
+                                             const DeviceState &targetState);
 
-  const std::map<MotorControllerState, Statusword> STATE_STATUSWORD_MAP
-      {
-          {MotorControllerState::STATE_NOT_READY_TO_SWITCH_ON,
-           EposCommandLibrary::Statuswords::NOT_READY_TO_SWITCH_ON},
-          {MotorControllerState::STATE_SWITCH_ON_DISABLED,
-           EposCommandLibrary::Statuswords::SWITCH_ON_DISABLED},
-          {MotorControllerState::STATE_READY_TO_SWITCH_ON,
-           EposCommandLibrary::Statuswords::READY_TO_SWITCH_ON},
-          {MotorControllerState::STATE_SWITCHED_ON,
-           EposCommandLibrary::Statuswords::SWITCHED_ON},
-          {MotorControllerState::STATE_OP_ENABLED,
-           EposCommandLibrary::Statuswords::OP_ENABLED},
-          {MotorControllerState::STATE_QUICK_STOP_ACTIVE,
-           EposCommandLibrary::Statuswords::QUICK_STOP_ACTIVE},
-          {MotorControllerState::STATE_FAULT_REACTION_ACTIVE,
-           EposCommandLibrary::Statuswords::FAULT_REACTION_ACTIVE},
-          {MotorControllerState::STATE_FAULT, EposCommandLibrary::Statuswords::FAULT}
-      };
+  static bool applyNextHomingStateTransition(uint16_t &controlword,
+                                             const HomingState &targetState);
 
   const std::string name_;
   PdoInfo pdoInfo_;
 
+  OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
+
   ExtendedJointState sendJointState_;
   ExtendedJointState receiveJointState_;
 
-  //! Bool indicating if slave and bus startup was called
+  HomingState sendHomingState_;
+  HomingState receiveHomingState_;
+
+  DeviceState sendDeviceState_;
+  DeviceState receiveDeviceState_;
+
+  // Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
 };
 

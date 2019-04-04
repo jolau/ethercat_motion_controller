@@ -72,7 +72,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
 //  eposEthercatSlave_->readInbox();
 
  /* ExtendedJointState extendedJointState;
-  extendedJointState.motorControllerState = MotorControllerState::STATE_OP_ENABLED;
+  extendedJointState.motorControllerState = DeviceState::STATE_OP_ENABLED;
   eposEthercatSlave_->setSendJointState(extendedJointState);
 
   eposEthercatSlave_->writeOutbox();

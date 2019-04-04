@@ -38,7 +38,7 @@ void EposEthercatSlaveManager::updateWriteAll(const varileg_lowlevel_controller_
 
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
     ExtendedJointState extendedJointState;
-    extendedJointState.motorControllerState = static_cast<MotorControllerState>(extendedJointStates.motor_controller_state[i]);
+    //extendedJointState.motorControllerState = static_cast<MotorControllerState>(extendedJointStates.motor_controller_state[i]);
     extendedJointState.position = extendedJointStates.position[i];
 
     EposEthercatSlavePtr eposEthercatSlavePtr = eposEthercatSlaves_.at(extendedJointStates.name[i]);
@@ -59,7 +59,7 @@ varileg_lowlevel_controller_msgs::ExtendedJointStates varileg_lowlevel_controlle
 
     extendedJointStates.name.push_back(it.first);
     extendedJointStates.position.push_back(extendedJointState.position);
-    extendedJointStates.motor_controller_state.push_back(static_cast<int8_t>(extendedJointState.motorControllerState));
+    //extendedJointStates.motor_controller_state.push_back(static_cast<int8_t>(extendedJointState.motorControllerState));
   }
 
   return extendedJointStates;
