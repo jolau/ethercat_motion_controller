@@ -33,8 +33,8 @@ void EposEthercatSlaveManager::setJointName2NodeIdMap(const std::map<std::string
   jointName2NodeIdMap_ = jointName2NodeIdMap;
 }
 
-void EposEthercatSlaveManager::updateWriteAll(const varileg_lowlevel_controller_msgs::ExtendedJointStates &extendedJointStates) {
-  assert(extendedJointStates.name.size() == eposEthercatSlaves_.size());
+void writeAllOutboxes() {
+  /*assert(extendedJointStates.name.size() == eposEthercatSlaves_.size());
 
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
     ExtendedJointState extendedJointState;
@@ -44,11 +44,11 @@ void EposEthercatSlaveManager::updateWriteAll(const varileg_lowlevel_controller_
     EposEthercatSlavePtr eposEthercatSlavePtr = eposEthercatSlaves_.at(extendedJointStates.name[i]);
     eposEthercatSlavePtr->setSendJointState(extendedJointState);
     eposEthercatSlavePtr->writeOutbox();
-  }
+  }*/
 }
 
-varileg_lowlevel_controller_msgs::ExtendedJointStates varileg_lowlevel_controller::EposEthercatSlaveManager::updateReadAll() {
-  varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates;
+void readAllInboxes() {
+/*  varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates;
 
   for(const auto &it : eposEthercatSlaves_) {
     EposEthercatSlavePtr  eposEthercatSlavePtr = it.second;
@@ -60,9 +60,7 @@ varileg_lowlevel_controller_msgs::ExtendedJointStates varileg_lowlevel_controlle
     extendedJointStates.name.push_back(it.first);
     extendedJointStates.position.push_back(extendedJointState.position);
     //extendedJointStates.motor_controller_state.push_back(static_cast<int8_t>(extendedJointState.motorControllerState));
-  }
-
-  return extendedJointStates;
+  }*/
 }
 
 }

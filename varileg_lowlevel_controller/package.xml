@@ -23,8 +23,7 @@
   <depend>message_logger</depend>
   <depend>soem_interface</depend>
   <depend>std_msgs</depend>
-  <depend>varileg_lowlevel_controller_msgs</depend>
-
+  <depend>varileg_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
