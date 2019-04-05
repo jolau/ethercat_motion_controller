@@ -12,7 +12,7 @@ find_package(catkin REQUIRED
   any_node
   message_logger
   soem_interface
-  varileg_lowlevel_controller_msgs
+  varileg_msgs
   )
 
 ###################################
@@ -28,7 +28,7 @@ catkin_package(
   std_msgs
   message_logger
   soem_interface
-  varileg_lowlevel_controller_msgs
+  varileg_msgs
 )
 
 ###########

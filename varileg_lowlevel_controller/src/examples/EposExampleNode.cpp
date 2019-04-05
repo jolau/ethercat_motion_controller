@@ -3,7 +3,6 @@
 //
 
 #include <varileg_lowlevel_controller/examples/EposExampleNode.hpp>
-#include <varileg_lowlevel_controller_msgs/MotorControllerState.h>
 
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
@@ -69,16 +68,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
 
   bus_->receiveInbox();
 
-//  eposEthercatSlave_->readInbox();
-
- /* ExtendedJointState extendedJointState;
-  extendedJointState.motorControllerState = DeviceState::STATE_OP_ENABLED;
-  eposEthercatSlave_->setSendJointState(extendedJointState);
-
-  eposEthercatSlave_->writeOutbox();
-*/
-
-  varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->updateReadAll();
+  /*varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->updateReadAll();
 
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
     if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
@@ -103,7 +93,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
     }
   }
 
-  eposEthercatSlaveManager_->updateWriteAll(extendedJointStates);
+  eposEthercatSlaveManager_->updateWriteAll(extendedJointStates);*/
 
   bus_->sendOutbox();
 

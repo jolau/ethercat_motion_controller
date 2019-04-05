@@ -6,7 +6,6 @@
 #define VARILEG_LOWLEVEL_CONTROLLER_EPOSETHERCATSLAVEMANAGER_HPP
 
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
-#include "varileg_lowlevel_controller_msgs/ExtendedJointStates.h"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlaveManager {
@@ -15,8 +14,8 @@ class EposEthercatSlaveManager {
   ~EposEthercatSlaveManager();
 
   bool addEposEthercatSlave(EposEthercatSlavePtr eposEthercatSlave);
-  void updateWriteAll(const varileg_lowlevel_controller_msgs::ExtendedJointStates &extendedJointStates);
-  varileg_lowlevel_controller_msgs::ExtendedJointStates updateReadAll();
+  void writeAllOutboxes();
+  void readAllInboxes();
 
   void setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap);
  private:
