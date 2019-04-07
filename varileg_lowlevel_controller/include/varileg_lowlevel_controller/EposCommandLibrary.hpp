@@ -6,10 +6,11 @@
 #define VARILEG_LOWLEVEL_CONTROLLER_EPOSSDOLIBRARY_HPP
 
 #include <cstdint>
+#include <varileg_lowlevel_controller/entities/DeviceState.hpp>
 #include "string"
-#include "OperatingMode.hpp"
-#include "HomingState.hpp"
-#include "HomingMethod.hpp"
+#include "varileg_lowlevel_controller/entities/OperatingMode.hpp"
+#include "varileg_lowlevel_controller/entities/HomingState.hpp"
+#include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 
 namespace varileg_lowlevel_controller {
 struct SDO {
@@ -50,6 +51,12 @@ const SDO HOMING_SPEED_ZERO_SEARCH = {"Homing speed for zero search (index)", 0x
 const SDO HOMING_ACCELERATION = {"Homing acceleration", 0x609A, 0x00};
 const SDO HOME_POSITION = {"Home position", 0x30B0, 0x00};
 const SDO HOMING_METHOD = {"Homing method", 0x6098, 0x00};
+
+const SDO SOFTWARE_MIN_POSITION_LIMIT = {"Software min position limit", 0x607D, 0x01};
+const SDO SOFTWARE_MAX_POSITION_LIMIT = {"Software max position limit", 0x607D, 0x02};
+const SDO MAX_MOTOR_SPEED = {"Max motor speed", 0x6080, 0x00};
+
+
 }
 
 namespace Controlwords {

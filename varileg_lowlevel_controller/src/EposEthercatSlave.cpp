@@ -48,24 +48,28 @@ void EposEthercatSlave::readInbox() {
 
   TxPdo txPdo;
   bus_->readTxPdo(address_, txPdo);
-  receiveDeviceState_ = EposCommandLibrary::EposDeviceState::toDeviceState(txPdo.StatusWord);
+  receiveDeviceState_ = EposCommandLibrary::EposDeviceState::toDeviceState(txPdo.statusWord);
 
   switch (currentOperatingMode_) {
     case OperatingMode::CSP: {
-      receiveJointState_.position = txPdo.PositionActualValue;
+      receiveJointState_.position = primaryEncoderConverter_.toRad(txPdo.positionActualValue);
+      receiveJointState_.primaryPosition = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder);
+      receiveJointState_.secondaryPosition = secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
+      receiveJointState_.velocity = txPdo.velocityActualValue;
+      receiveJointState_.torque = txPdo.torqueActualValue;
 
-      MELO_INFO_STREAM(
-          name_ << ": RSF Encoder: " << ((float) txPdo.PositionActualValue) << " and MILE Encoder: "
+     /* MELO_INFO_STREAM(
+          name_ << ": RSF Encoder: " << ((float) txPdo.positionActualValue) << " and MILE Encoder: "
                 << ((float) txPdo.PositionSecondEncoder)
-                << " diff: " << (txPdo.PositionActualValue - txPdo.PositionSecondEncoder));
-      float correctedRsfPosition = (float) txPdo.PositionActualValue / 40181;
+                << " diff: " << (txPdo.positionActualValue - txPdo.PositionSecondEncoder));
+      float correctedRsfPosition = (float) txPdo.positionActualValue / 40181;
       float correctedMilePosition = (float) -1 * txPdo.PositionSecondEncoder / 2176000;
       MELO_INFO_STREAM(name_ << ": RSF Encoder: " << correctedRsfPosition << " and MILE Encoder: " << correctedMilePosition << " diff: "
-                             << (correctedMilePosition - correctedRsfPosition))
+                             << (correctedMilePosition - correctedRsfPosition))*/
       break;
     }
     case OperatingMode::HMM: {
-      HomingState newHomingState = EposCommandLibrary::EposHomingState::toHomingState(txPdo.StatusWord);
+      HomingState newHomingState = EposCommandLibrary::EposHomingState::toHomingState(txPdo.statusWord);
 
       // Only if state has changed compared to last cycle
       if(newHomingState != receiveHomingState_ && newHomingState == HomingState::HOMING_SUCCESSFUL) {
@@ -91,7 +95,7 @@ void EposEthercatSlave::writeOutbox() {
 
   switch (currentOperatingMode_) {
     case OperatingMode::CSP: {
-      rxPdo.TargetPosition = sendJointState_.position;
+      rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
       break;
     }
     case OperatingMode::HMM: {
@@ -100,15 +104,36 @@ void EposEthercatSlave::writeOutbox() {
     }
   }
 
-  rxPdo.ControlWord = controlWord;
+  rxPdo.controlWord = controlWord;
 
   bus_->writeRxPdo(address_, rxPdo);
 }
 
 void EposEthercatSlave::shutdown() {
   RxPdo rxPdo;
-  rxPdo.ControlWord = 0;
+  rxPdo.controlWord = 0;
   bus_->writeRxPdo(address_, rxPdo);
+}
+
+bool EposEthercatSlave::setup(const EposConfig &eposConfig) {
+  assert(isStartedUp_);
+
+  primaryEncoderConverter_ = eposConfig.primaryEncoderConverter;
+  secondaryEncoderConverter_ = eposConfig.secondaryEncoderConverter;
+
+  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MIN_POSITION_LIMIT, eposConfig.minPositionLimitInc, true)) {
+    return false;
+  }
+
+  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MAX_POSITION_LIMIT, eposConfig.maxPositionLimitInc, true)) {
+    return false;
+  }
+
+  if(!writeSDO(EposCommandLibrary::SDOs::MAX_MOTOR_SPEED, eposConfig.maxMotorSpeedRpm, true)) {
+    return false;
+  }
+
+  return true;
 }
 
 bool EposEthercatSlave::writeOperatingMode(const OperatingMode &operatingMode) {
@@ -293,18 +318,6 @@ bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
   }
 }
 
-void EposEthercatSlave::setSendJointState(const ExtendedJointState &sendJointState) {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  sendJointState_ = sendJointState;
-}
-
-const ExtendedJointState &EposEthercatSlave::getReceiveJointState() const {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  return receiveJointState_;
-}
-
 const HomingState EposEthercatSlave::getReceiveHomingState() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
@@ -327,6 +340,23 @@ void EposEthercatSlave::setSendDeviceState(DeviceState sendMotorControllerState)
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   sendDeviceState_ = sendMotorControllerState;
+}
+
+void EposEthercatSlave::setSendJointTrajectory(const JointTrajectory &sendJointTrajectory) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  sendJointTrajectory_ = sendJointTrajectory;
+}
+
+const JointState EposEthercatSlave::getReceiveJointState() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  return JointState();
+}
+OperatingMode EposEthercatSlave::getCurrentOperatingMode() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  return currentOperatingMode_;
 }
 
 }

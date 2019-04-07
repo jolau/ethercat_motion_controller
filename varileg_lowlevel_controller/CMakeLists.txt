@@ -44,17 +44,16 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/EthercatNode.cpp
   src/EposEthercatSlave.cpp
-  include/varileg_lowlevel_controller/RxPdo.hpp
-  include/varileg_lowlevel_controller/TxPdo.hpp
+  include/varileg_lowlevel_controller/entities/RxPdo.hpp
+  include/varileg_lowlevel_controller/entities/TxPdo.hpp
   src/VarilegEthercatBusManager.cpp
   include/varileg_lowlevel_controller/EposCommandLibrary.hpp
   src/EposEthercatSlaveManager.cpp
   include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp
   src/examples/EposExampleNode.cpp
-  include/varileg_lowlevel_controller/ExtendedJointState.hpp
-  include/varileg_lowlevel_controller/DeviceState.hpp
-  include/varileg_lowlevel_controller/OperatingMode.hpp
-  include/varileg_lowlevel_controller/HomingState.hpp include/varileg_lowlevel_controller/HomingMethod.hpp)
+  include/varileg_lowlevel_controller/entities/DeviceState.hpp
+  include/varileg_lowlevel_controller/entities/OperatingMode.hpp
+  include/varileg_lowlevel_controller/entities/HomingState.hpp include/varileg_lowlevel_controller/entities/HomingMethod.hpp include/varileg_lowlevel_controller/entities/EposConfig.hpp include/varileg_lowlevel_controller/entities/PositionUnitConverter.hpp include/varileg_lowlevel_controller/entities/JointState.hpp include/varileg_lowlevel_controller/entities/JointTrajectory.hpp include/varileg_lowlevel_controller/ConversionTraits.hpp)
 
 
 target_link_libraries(${PROJECT_NAME}

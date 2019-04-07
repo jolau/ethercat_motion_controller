@@ -4,6 +4,9 @@
 
 #ifndef VARILEG_LOWLEVEL_CONTROLLER_OPERATINGMODE_HPP
 #define VARILEG_LOWLEVEL_CONTROLLER_OPERATINGMODE_HPP
+
+#include <string>
+
 namespace varileg_lowlevel_controller {
 enum class OperatingMode {
   UNKNOWN = 0,

@@ -6,7 +6,7 @@
 #include "EposEthercatSlave.hpp"
 #include "soem_interface/EthercatBusBase.hpp"
 #include "EposEthercatSlaveManager.hpp"
-#include "varileg_msgs/ExtendedDeviceState.h"
+#include "varileg_msgs/ExtendedDeviceStates.h"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {

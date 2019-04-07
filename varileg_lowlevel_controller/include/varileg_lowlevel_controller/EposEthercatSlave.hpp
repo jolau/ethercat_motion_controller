@@ -8,12 +8,14 @@
 // soem_interface
 #include <soem_interface/EthercatBusBase.hpp>
 #include <soem_interface/EthercatSlaveBase.hpp>
-#include "RxPdo.hpp"
-#include "TxPdo.hpp"
-#include "ExtendedJointState.hpp"
+#include <varileg_lowlevel_controller/entities/JointState.hpp>
+#include <varileg_lowlevel_controller/entities/JointTrajectory.hpp>
+#include "varileg_lowlevel_controller/entities/RxPdo.hpp"
+#include "varileg_lowlevel_controller/entities/TxPdo.hpp"
 #include "EposCommandLibrary.hpp"
-#include "DeviceState.hpp"
-#include "HomingMethod.hpp"
+#include "varileg_lowlevel_controller/entities/DeviceState.hpp"
+#include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
+#include "varileg_lowlevel_controller/entities/EposConfig.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -32,18 +34,21 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
 
+  void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
+  void setSendHomingState(HomingState sendHomingState);
+  void setSendDeviceState(DeviceState sendMotorControllerState);
+
+  const JointState getReceiveJointState() const;
+  const HomingState getReceiveHomingState() const;
+  const DeviceState getReceiveDeviceState() const;
+  OperatingMode getCurrentOperatingMode() const;
+
   bool startup() override;
   void readInbox();
   void writeOutbox();
   void shutdown() override;
 
-  void setSendJointState(const ExtendedJointState &sendJointState);
-  void setSendHomingState(HomingState sendHomingState);
-  void setSendDeviceState(DeviceState sendMotorControllerState);
-
-  const ExtendedJointState &getReceiveJointState() const;
-  const HomingState getReceiveHomingState() const;
-  const DeviceState getReceiveDeviceState() const;
+  bool setup(const EposConfig &eposConfig);
 
   uint8_t readNodeId();
   OperatingMode readOperatingMode();
@@ -67,11 +72,13 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   const std::string name_;
   PdoInfo pdoInfo_;
+  PositionUnitConverter primaryEncoderConverter_;
+  PositionUnitConverter secondaryEncoderConverter_;
 
   OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
 
-  ExtendedJointState sendJointState_;
-  ExtendedJointState receiveJointState_;
+  JointState receiveJointState_;
+  JointTrajectory sendJointTrajectory_;
 
   HomingState sendHomingState_;
   HomingState receiveHomingState_;
