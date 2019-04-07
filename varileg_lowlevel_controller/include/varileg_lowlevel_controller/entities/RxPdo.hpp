@@ -11,8 +11,8 @@
 namespace varileg_lowlevel_controller {
 
 struct RxPdo {
-  uint16_t	ControlWord;		//0x6040
-  int32_t	TargetPosition;		//0x607A
+  uint16_t	controlWord;		//0x6040
+  int32_t	targetPosition;		//0x607A
   /*int32_t	PositionOffset;		//0x60B0
   int16_t	TorqueOffset;		//0x60B2
   //int32_t	VelocityOffset;		//0x60B1
