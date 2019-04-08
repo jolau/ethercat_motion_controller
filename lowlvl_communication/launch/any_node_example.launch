@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<launch>
+    <arg name="launch_prefix" default="" />
+
+    <!-- Launch any_node_example node -->
+    <node name="lowlvl_communication_node" pkg="lowlvl_communication" type="lowlvl_communication_node" output="screen" launch-prefix="$(arg launch_prefix)">
+        <rosparam command="load" file="$(find lowlvl_communication)/param/default_parameters.yaml" />
+        <rosparam command="load" file="$(find lowlvl_communication)/param/default_topics.yaml" />
+        <rosparam command="load" file="$(find lowlvl_communication)/param/default_services.yaml" />
+    </node>
+    
+</launch>

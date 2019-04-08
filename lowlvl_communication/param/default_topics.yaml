@@ -1,0 +1,31 @@
+publishers:
+  my_publisher_name:
+    topic: /my_publisher_topic
+    queue_size: 1
+    latch: false
+  
+  joint_state:
+    topic: /joint_state
+    queue_size: 1
+    latch: false
+  
+  device_state:
+    topic: /device_state
+    queue_size: 1
+    latch: false
+  
+  joint_trajectory_pub:
+    topic: /joint_trajectory
+    queue_size: 1
+    latch: false
+  
+subscribers:
+  my_subscriber_name:
+    topic: /my_subscriber_topic
+    queue_size: 1
+    latch: false
+  
+  joint_trajectory:
+    topic: /joint_trajectory
+    queue_size: 1
+    latch: false
