@@ -6,8 +6,8 @@
 #include "actionlib/server/simple_action_server.h"
 
 #include "varileg_msgs/ExtendedJointStates.h"
-#include "varileg_msgs/ExtendedDeviceState.h"
-#include "varileg_msgs/ExtendedJointTrajectory.h"
+#include "varileg_msgs/ExtendedDeviceStates.h"
+#include "varileg_msgs/ExtendedJointTrajectories.h"
 
 #include "varileg_msgs/DeviceStateAction.h"
 #include "varileg_msgs/HomingAction.h"
@@ -27,7 +27,7 @@ namespace lowlvl_communication
     actionlib::SimpleActionServer <varileg_msgs::HomingAction> as_homing_;
       
     //Client Messages
-    varileg_msgs::ExtendedDeviceState msg_device_state_;
+    varileg_msgs::ExtendedDeviceStates msg_device_state_;
     varileg_msgs::ExtendedJointStates msg_joint_state_;
     
     //Action Messages
@@ -48,7 +48,7 @@ namespace lowlvl_communication
     void subscriberCallback(const std_msgs::Float32ConstPtr &msg);
     
     //Subscriber
-    void jointTrajectoryCb (const varileg_msgs::ExtendedJointTrajectoryConstPtr &msg);
+    void jointTrajectoryCb (const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg);
 
     //Action Server
     void deviceStateCb (const varileg_msgs::DeviceStateGoalConstPtr &goal);
