@@ -12,7 +12,7 @@ ExampleNode::ExampleNode(any_node::Node::NodeHandlePtr nh): any_node::Node(nh),
 
   //Publisher
   pub_joint_state_= advertise<varileg_msgs::ExtendedJointStates>("joint_state","joint_state",1);
-  pub_device_state_= advertise<varileg_msgs::ExtendedDeviceState>("device_state","device_state",1);
+  pub_device_state_= advertise<varileg_msgs::ExtendedDeviceStates>("device_state","device_state",1);
 }
 
 bool ExampleNode::init() 
@@ -37,7 +37,7 @@ bool ExampleNode::init()
 }
 
 //Subscriber
-void ExampleNode::jointTrajectoryCb (const varileg_msgs::ExtendedJointTrajectoryConstPtr &msg)
+void ExampleNode::jointTrajectoryCb (const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg)
 {
   MELO_INFO("Received jointTrajectoryCb Topic");
   msg->name[0];
