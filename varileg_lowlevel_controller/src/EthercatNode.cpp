@@ -4,12 +4,20 @@ namespace varileg_lowlevel_controller {
 
 bool EthercatNode::init() {
   MELO_INFO("init called");
+  constexpr unsigned int defaultQueueSize = 1;
+  //Publisher
+  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_state","joint_state",1);
+  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_state","device_state",1);
+
+  //Subscriber
+  jointTrajectoriesSubscriber_ = subscribe("joint_trajectory", "joint_trajectory", defaultQueueSize,
+                                           &EthercatNode::jointTrajectoriesCallback, this);
 
   constexpr double defaultWorkerTimeStep = .005;
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
 
-  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
+  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"knee_right" , 4}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
 
   for (auto &pair : jointName2NodeIdMap) {
@@ -87,6 +95,9 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   varileg_msgs::ExtendedDeviceStates extendedDeviceStates = eposEthercatSlaveManager_->getExtendedDeviceStates();
   varileg_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->getExtendedJointStates();
 
+  jointStatesPublisher_.publish(extendedJointStates);
+  deviceStatePublisher_.publish(extendedDeviceStates);
+
   varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
 
   MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
@@ -135,14 +146,73 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   return true;
 }
 
+//Subscriber
+void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg)
+{
+  MELO_INFO("Received jointTrajectoriesCallback Topic");
+  msg->name[0];
+  msg->position[0];
+  /* @Jonas
+  Fülle die Einträge mit Daten
+  */
+}
+
+//Action Server
+void EthercatNode::deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal)
+{
+  MELO_INFO("Received deviceStateCallback Action");
+/*
+  ros::Rate rate(0.005);
+
+  const std::string jointName = "knee_right";
+  eposEthercatSlaveManager_->setDeviceState(jointName, goal->target_device_state);
+
+  varileg_msgs::DeviceState currentDeviceState = eposEthercatSlaveManager_->getDeviceState(jointName);
+  while(goal->target_device_state.state != currentDeviceState.state && eposEthercatSlaveManager_->isDeviceStateReachable(jointName) != false) {
+    if(deviceStateActionServer_.isPreemptRequested()|| !ros::ok()) {
+      deviceStateActionServer_.setPreempted();
+      deviceStateResult_.successful = false;
+      break;
+    }
+
+    currentDeviceState = eposEthercatSlaveManager_->getDeviceState(jointName);
+
+    deviceStateFeedback_.current_device_state = currentDeviceState;
+    deviceStateActionServer_.publishFeedback(deviceStateFeedback_);
+
+    rate.sleep();
+  }
+
+  if(!eposEthercatSlaveManager_->isDeviceStateReachable(jointName)) {
+    deviceStateResult_.successful = false;
+  } else {
+    deviceStateResult_.successful = goal->target_device_state.state == currentDeviceState.state;
+  }
+
+  deviceStateResult_.reached_device_state = currentDeviceState;
+
+  deviceStateActionServer_.setSucceeded(deviceStateResult_);*/
+}
+
+//Action Server
+void EthercatNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
+{
+  MELO_INFO("Received homingCallback Action");
+
+  /* @Jonas
+  goal -> ?
+  homingFeedback_.interrupted = [...];
+  homingActionServer_.publishFeedback(homingFeedback_);
+  homingResult_.successful = [...];
+   homingActionServer_.isPreemptedRequested();
+  */
+  homingActionServer_.setSucceeded(homingResult_);
+}
+
 void EthercatNode::preCleanup() {
   // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
   MELO_INFO("preCleanup called");
 }
 
-void EthercatNode::subscriberCallback(const std_msgs::StringConstPtr &msg) {
-  // called asynchrounously when ros messages arrive for the subscriber created in init() function
-  MELO_INFO("received ros message: %s", msg->data.c_str());
-}
 
 }

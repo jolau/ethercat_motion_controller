@@ -16,6 +16,7 @@
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 #include "varileg_lowlevel_controller/entities/EposConfig.hpp"
+#include "boost/logic/tribool.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -36,10 +37,11 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
-  void setSendDeviceState(DeviceState sendMotorControllerState);
+  void setSendDeviceState(DeviceState sendDeviceState);
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
 
+  const boost::tribool &isDeviceStateReachable() const;
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
   const DeviceState getReceiveDeviceState() const;
@@ -90,6 +92,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   // Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
+
+  boost::logic::tribool isDeviceStateReachable_ {boost::indeterminate};
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;

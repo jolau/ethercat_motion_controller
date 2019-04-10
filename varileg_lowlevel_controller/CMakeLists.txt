@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
   soem_interface
   varileg_msgs
   yaml_tools
+  actionlib
   )
 
 ###################################
@@ -30,6 +31,7 @@ catkin_package(
   soem_interface
   varileg_msgs
   yaml_tools
+  actionlib
 )
 
 ###########
