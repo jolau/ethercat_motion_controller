@@ -90,7 +90,7 @@ void EposEthercatSlave::writeOutbox() {
   RxPdo rxPdo;
 
   uint16_t controlWord = 0;
-  applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
+  /*isDeviceStateReachable_ = */applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
   MELO_INFO_STREAM("Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
                                      << Enum::toString(sendDeviceState_) << " next controlword "
                                      << std::bitset<16>(controlWord));
@@ -347,10 +347,13 @@ void EposEthercatSlave::setSendHomingState(HomingState sendHomingState) {
   sendHomingState_ = sendHomingState;
 }
 
-void EposEthercatSlave::setSendDeviceState(DeviceState sendMotorControllerState) {
+void EposEthercatSlave::setSendDeviceState(DeviceState sendDeviceState) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
+  if(sendDeviceState_ != sendDeviceState) {
+    isDeviceStateReachable_ = boost::indeterminate;
+  }
 
-  sendDeviceState_ = sendMotorControllerState;
+  sendDeviceState_ = sendDeviceState;
 }
 
 void EposEthercatSlave::setSendJointTrajectory(const JointTrajectory &sendJointTrajectory) {
@@ -380,6 +383,12 @@ void EposEthercatSlave::setSecondaryEncoderConverter(const PositionUnitConverter
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   secondaryEncoderConverter_ = secondaryEncoderConverter;
+}
+
+const boost::tribool &EposEthercatSlave::isDeviceStateReachable() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  return isDeviceStateReachable_;
 }
 
 }

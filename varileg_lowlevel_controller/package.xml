@@ -25,6 +25,7 @@
   <depend>std_msgs</depend>
   <depend>varileg_msgs</depend>
   <depend>yaml_tools</depend>
+  <depend>actionlib</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
