@@ -58,6 +58,8 @@ void EposEthercatSlave::readInbox() {
       receiveJointState_.velocity = txPdo.velocityActualValue;
       receiveJointState_.torque = txPdo.torqueActualValue;
 
+      MELO_INFO_STREAM("position: " << txPdo.positionActualValue << " prim pos: " << txPdo.positionPrimaryEncoder << " sec pos: " << txPdo.positionSecondaryEncoder);
+
      /* MELO_INFO_STREAM(
           name_ << ": RSF Encoder: " << ((float) txPdo.positionActualValue) << " and MILE Encoder: "
                 << ((float) txPdo.PositionSecondEncoder)
@@ -140,9 +142,11 @@ bool EposEthercatSlave::setup(const EposConfig &eposConfig) {
 bool EposEthercatSlave::writeOperatingMode(const OperatingMode &operatingMode) {
   uint8_t operatingModeCommand = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(operatingMode);
 
+  MELO_INFO_STREAM("setting operating mode: " <<  Enum::toString(operatingMode));
+
   // set mode to CSP
   if (!writeSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION, operatingModeCommand, true)) {
-    MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
+    MELO_ERROR_STREAM(name_ << ": Could not set mode: " << Enum::toString(operatingMode));
     return false;
   }
 
@@ -352,7 +356,7 @@ void EposEthercatSlave::setSendJointTrajectory(const JointTrajectory &sendJointT
 const JointState EposEthercatSlave::getReceiveJointState() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  return JointState();
+  return receiveJointState_;
 }
 OperatingMode EposEthercatSlave::getCurrentOperatingMode() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
