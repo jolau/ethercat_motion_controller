@@ -28,6 +28,7 @@ class EposEthercatSlaveManager {
   void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
   void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
 
+  bool writeSetup(const std::string& name, const EposConfig eposConfig);
   bool writeOperatingMode(const std::string& name, const varileg_msgs::OperatingMode &operatingModeRos);
   bool writeHomingMethod(const std::string& name, const varileg_msgs::HomingGoal::_mode_type &homingMode);
   bool writeAllInterpolationTimePeriod(uint8_t timePeriod);

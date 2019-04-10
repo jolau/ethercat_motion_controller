@@ -5,6 +5,10 @@ namespace varileg_lowlevel_controller {
 bool EthercatNode::init() {
   MELO_INFO("init called");
 
+  constexpr double defaultWorkerTimeStep = .01;
+  constexpr int priority = 10;
+  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+
   auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", std::map<std::string, int>());
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
 
@@ -21,6 +25,7 @@ bool EthercatNode::init() {
   }
   MELO_INFO_STREAM("after bus startup");
 
+  // setup epos manager
   for(auto it : slavesOfBusesMap_) {
     for(soem_interface::EthercatSlaveBasePtr slave : it.second) {
       EposEthercatSlavePtr eposEthercatSlavePtr = std::dynamic_pointer_cast<EposEthercatSlave>(slave);
@@ -30,9 +35,8 @@ bool EthercatNode::init() {
     }
   }
 
-  constexpr double defaultWorkerTimeStep = .01;
-  constexpr int priority = 10;
-  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(workerTimeStep);
+
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
@@ -48,7 +52,7 @@ void EthercatNode::setupBusManager() {
 
   std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves(2);
   leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
-  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
+  //leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
   soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
@@ -56,7 +60,7 @@ void EthercatNode::setupBusManager() {
 
   std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves(2);
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
-  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
+  //rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
 }
 

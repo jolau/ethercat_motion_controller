@@ -12,7 +12,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   constexpr int priority = 10;
 
   std::map<std::string, int> joint2eposMap;
-  joint2eposMap.insert(std::make_pair("hip_left", 3));
+  joint2eposMap.insert(std::make_pair("hip_left", 4));
   joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
@@ -68,33 +68,53 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
 
   bus_->receiveInbox();
 
-  /*varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->updateReadAll();
+  eposEthercatSlaveManager_->readAllInboxes();
+
+  varileg_msgs::ExtendedDeviceStates extendedDeviceStates = eposEthercatSlaveManager_->getExtendedDeviceStates();
+  varileg_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->getExtendedJointStates();
+  
+  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
+
+  MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
 
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
-    if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Actual Position: " << extendedJointStates.position[i]);
+    std::string name = extendedJointStates.name[i];
+    MELO_INFO_STREAM(name << i);
 
+    if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+      extendedJointTrajectories.name.push_back(name);
+      MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i]);
+
+      double position = 0;
       if(goUp) {
         if (extendedJointStates.position[i] >= 5000) {
           goUp = false;
         }
-          extendedJointStates.position[i] = 5100;
+          
+        position = 5100;
       } else {
         if(extendedJointStates.position[i] <= 0) {
           goUp = true;
         }
-        extendedJointStates.position[i] = -100;
+
+        position = -100;
       }
-      //extendedJointStates.position[i] = 10000;
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Send Target Position: " << extendedJointStates.position[i]);
+
+      extendedJointTrajectories.position.push_back(position);
+
+      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);
     } else {
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Enabling Drive");
-      extendedJointStates.motor_controller_state[i] = varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED;
+      MELO_INFO_STREAM(name << ": Enabling Drive");
+      varileg_msgs::DeviceState deviceState;
+      deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
+
+     eposEthercatSlaveManager_->setDeviceState(name, deviceState);
     }
   }
 
-  eposEthercatSlaveManager_->updateWriteAll(extendedJointStates);*/
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
 
+  eposEthercatSlaveManager_->writeAllOutboxes();
   bus_->sendOutbox();
 
   return true;
