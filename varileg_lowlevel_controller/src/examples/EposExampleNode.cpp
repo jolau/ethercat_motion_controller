@@ -3,10 +3,13 @@
 //
 
 #include <varileg_lowlevel_controller/examples/EposExampleNode.hpp>
-#include <varileg_lowlevel_controller_msgs/MotorControllerState.h>
 
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
+
+  constexpr double defaultWorkerTimeStep = .01;
+  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  constexpr int priority = 10;
 
   std::map<std::string, int> joint2eposMap;
   joint2eposMap.insert(std::make_pair("hip_left", 4));
@@ -24,6 +27,8 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   }
 
+  eposEthercatSlaveOne->writeInterpolationTimePeriod(workerTimeStep);
+
   bus_->setState(EC_STATE_OPERATIONAL);
 
   if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveOne)) {
@@ -36,9 +41,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };*/
 
-  constexpr double defaultWorkerTimeStep = .01;
-  constexpr int priority = 10;
-  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+
   addWorker("eposExampleNode::updateWorker", workerTimeStep, &EposExampleNode::update, this, priority);
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
@@ -65,41 +68,53 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
 
   bus_->receiveInbox();
 
-//  eposEthercatSlave_->readInbox();
+  eposEthercatSlaveManager_->readAllInboxes();
 
- /* ExtendedJointState extendedJointState;
-  extendedJointState.motorControllerState = MotorControllerState::STATE_OP_ENABLED;
-  eposEthercatSlave_->setSendJointState(extendedJointState);
+  varileg_msgs::ExtendedDeviceStates extendedDeviceStates = eposEthercatSlaveManager_->getExtendedDeviceStates();
+  varileg_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->getExtendedJointStates();
+  
+  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
 
-  eposEthercatSlave_->writeOutbox();
-*/
-
-  varileg_lowlevel_controller_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->updateReadAll();
+  MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
 
   for (int i = 0; i < extendedJointStates.name.size(); ++i) {
-    if(extendedJointStates.motor_controller_state[i] == varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED) {
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Actual Position: " << extendedJointStates.position[i]);
-      //extendedJointStates.position[i] = 0;
+    std::string name = extendedJointStates.name[i];
+    MELO_INFO_STREAM(name << i);
+
+    if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+      extendedJointTrajectories.name.push_back(name);
+      MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i]);
+
+      double position = 0;
       if(goUp) {
         if (extendedJointStates.position[i] >= 5000) {
           goUp = false;
         }
-          extendedJointStates.position[i] = 5100;
+          
+        position = 5100;
       } else {
         if(extendedJointStates.position[i] <= 0) {
           goUp = true;
         }
-        extendedJointStates.position[i] = -100;
+
+        position = -100;
       }
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Send Target Position: " << extendedJointStates.position[i]);
+
+      extendedJointTrajectories.position.push_back(position);
+
+      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);
     } else {
-      MELO_INFO_STREAM(extendedJointStates.name[i] << ": Enabling Drive");
-      extendedJointStates.motor_controller_state[i] = varileg_lowlevel_controller_msgs::MotorControllerState::STATE_OP_ENABLED;
+      MELO_INFO_STREAM(name << ": Enabling Drive");
+      varileg_msgs::DeviceState deviceState;
+      deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
+
+     eposEthercatSlaveManager_->setDeviceState(name, deviceState);
     }
   }
 
-  eposEthercatSlaveManager_->updateWriteAll(extendedJointStates);
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
 
+  eposEthercatSlaveManager_->writeAllOutboxes();
   bus_->sendOutbox();
 
   return true;

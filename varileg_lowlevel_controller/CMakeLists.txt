@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(varileg_lowlevel_controller)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_definitions(-DMELO_FUNCTION_PRINTS)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,7 +11,8 @@ find_package(catkin REQUIRED
   any_node
   message_logger
   soem_interface
-  varileg_lowlevel_controller_msgs
+  varileg_msgs
+  yaml_tools
   )
 
 ###################################
@@ -28,7 +28,8 @@ catkin_package(
   std_msgs
   message_logger
   soem_interface
-  varileg_lowlevel_controller_msgs
+  varileg_msgs
+  yaml_tools
 )
 
 ###########
@@ -44,15 +45,23 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/EthercatNode.cpp
   src/EposEthercatSlave.cpp
-  include/varileg_lowlevel_controller/RxPdo.hpp
-  include/varileg_lowlevel_controller/TxPdo.hpp
+  include/varileg_lowlevel_controller/entities/RxPdo.hpp
+  include/varileg_lowlevel_controller/entities/TxPdo.hpp
   src/VarilegEthercatBusManager.cpp
   include/varileg_lowlevel_controller/EposCommandLibrary.hpp
   src/EposEthercatSlaveManager.cpp
   include/varileg_lowlevel_controller/EposEthercatSlaveManager.hpp
   src/examples/EposExampleNode.cpp
-  include/varileg_lowlevel_controller/ExtendedJointState.hpp
-  include/varileg_lowlevel_controller/MotorControllerState.hpp)
+  include/varileg_lowlevel_controller/entities/DeviceState.hpp
+  include/varileg_lowlevel_controller/entities/OperatingMode.hpp
+  include/varileg_lowlevel_controller/entities/HomingState.hpp
+  include/varileg_lowlevel_controller/entities/HomingMethod.hpp
+  include/varileg_lowlevel_controller/entities/EposConfig.hpp
+  include/varileg_lowlevel_controller/entities/PositionUnitConverter.hpp
+  include/varileg_lowlevel_controller/entities/JointState.hpp
+  include/varileg_lowlevel_controller/entities/JointTrajectory.hpp
+  include/varileg_lowlevel_controller/ConversionTraits.hpp
+  include/varileg_lowlevel_controller/EposConfigSetup.hpp)
 
 
 target_link_libraries(${PROJECT_NAME}
