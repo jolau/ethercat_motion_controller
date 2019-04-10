@@ -6,22 +6,44 @@
 #define VARILEG_LOWLEVEL_CONTROLLER_EPOSETHERCATSLAVEMANAGER_HPP
 
 #include "varileg_lowlevel_controller/EposEthercatSlave.hpp"
-#include "varileg_lowlevel_controller_msgs/ExtendedJointStates.h"
+#include "mutex"
+#include "varileg_msgs/ExtendedDeviceStates.h"
+#include "varileg_msgs/ExtendedJointStates.h"
+#include "varileg_msgs/ExtendedJointTrajectories.h"
+#include "varileg_msgs/HomingGoal.h"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlaveManager {
  public:
-  EposEthercatSlaveManager() {};
+  EposEthercatSlaveManager() = default;
   ~EposEthercatSlaveManager();
 
   bool addEposEthercatSlave(EposEthercatSlavePtr eposEthercatSlave);
-  void updateWriteAll(const varileg_lowlevel_controller_msgs::ExtendedJointStates &extendedJointStates);
-  varileg_lowlevel_controller_msgs::ExtendedJointStates updateReadAll();
+  void writeAllOutboxes();
+  void readAllInboxes();
+
+  varileg_msgs::ExtendedDeviceStates getExtendedDeviceStates();
+  varileg_msgs::ExtendedJointStates getExtendedJointStates();
+
+  void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
+  void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
+
+  bool writeSetup(const std::string& name, const EposConfig eposConfig);
+  bool writeOperatingMode(const std::string& name, const varileg_msgs::OperatingMode &operatingModeRos);
+  bool writeHomingMethod(const std::string& name, const varileg_msgs::HomingGoal::_mode_type &homingMode);
+  bool writeAllInterpolationTimePeriod(uint8_t timePeriod);
 
   void setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap);
  private:
+  // Mutex prohibiting simultaneous access to EtherCAT slave manager.
+  mutable std::mutex mutex_;
+
   std::map<std::string, EposEthercatSlavePtr> eposEthercatSlaves_;
   std::map<std::string, int> jointName2NodeIdMap_;
+
+  EposEthercatSlavePtr getEposEthercatSlave(const std::string &name);
+  static void resizeExtendedJointStates(varileg_msgs::ExtendedJointStates &extendedJointStates, const unsigned long &size);
+  static void resizeExtendedDeviceStates(varileg_msgs::ExtendedDeviceStates &extendedDeviceStates, const unsigned long &size);
 };
 
 using EposEthercatSlaveManagerPtr = std::shared_ptr<EposEthercatSlaveManager>;
