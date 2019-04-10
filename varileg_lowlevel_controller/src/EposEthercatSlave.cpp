@@ -96,6 +96,7 @@ void EposEthercatSlave::writeOutbox() {
   switch (currentOperatingMode_) {
     case OperatingMode::CSP: {
       rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
+      MELO_INFO_STREAM("rx.Target Position: " << rxPdo.targetPosition);
       break;
     }
     case OperatingMode::HMM: {

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(varileg_lowlevel_controller)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_definitions(-DMELO_FUNCTION_PRINTS)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -13,6 +12,7 @@ find_package(catkin REQUIRED
   message_logger
   soem_interface
   varileg_msgs
+  yaml_tools
   )
 
 ###################################
@@ -29,6 +29,7 @@ catkin_package(
   message_logger
   soem_interface
   varileg_msgs
+  yaml_tools
 )
 
 ###########
@@ -53,7 +54,14 @@ add_library(${PROJECT_NAME}
   src/examples/EposExampleNode.cpp
   include/varileg_lowlevel_controller/entities/DeviceState.hpp
   include/varileg_lowlevel_controller/entities/OperatingMode.hpp
-  include/varileg_lowlevel_controller/entities/HomingState.hpp include/varileg_lowlevel_controller/entities/HomingMethod.hpp include/varileg_lowlevel_controller/entities/EposConfig.hpp include/varileg_lowlevel_controller/entities/PositionUnitConverter.hpp include/varileg_lowlevel_controller/entities/JointState.hpp include/varileg_lowlevel_controller/entities/JointTrajectory.hpp include/varileg_lowlevel_controller/ConversionTraits.hpp)
+  include/varileg_lowlevel_controller/entities/HomingState.hpp
+  include/varileg_lowlevel_controller/entities/HomingMethod.hpp
+  include/varileg_lowlevel_controller/entities/EposConfig.hpp
+  include/varileg_lowlevel_controller/entities/PositionUnitConverter.hpp
+  include/varileg_lowlevel_controller/entities/JointState.hpp
+  include/varileg_lowlevel_controller/entities/JointTrajectory.hpp
+  include/varileg_lowlevel_controller/ConversionTraits.hpp
+  include/varileg_lowlevel_controller/EposConfigSetup.hpp)
 
 
 target_link_libraries(${PROJECT_NAME}

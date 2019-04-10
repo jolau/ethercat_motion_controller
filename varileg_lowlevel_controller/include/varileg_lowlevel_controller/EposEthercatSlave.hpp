@@ -72,8 +72,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   const std::string name_;
   PdoInfo pdoInfo_;
-  PositionUnitConverter primaryEncoderConverter_;
-  PositionUnitConverter secondaryEncoderConverter_;
+  PositionUnitConverter primaryEncoderConverter_ = {1};
+  PositionUnitConverter secondaryEncoderConverter_ = {1};
 
   OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
 

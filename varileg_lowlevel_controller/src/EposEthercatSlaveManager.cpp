@@ -69,7 +69,7 @@ varileg_msgs::ExtendedDeviceStates EposEthercatSlaveManager::getExtendedDeviceSt
 
   varileg_msgs::ExtendedDeviceStates extendedDeviceStates;
 
-  resizeExtendedDeviceStates(extendedDeviceStates, eposEthercatSlaves_.size());
+  //resizeExtendedDeviceStates(extendedDeviceStates, eposEthercatSlaves_.size());
 
   for (const auto &it : eposEthercatSlaves_) {
     EposEthercatSlavePtr eposEthercatSlavePtr = it.second;
@@ -101,10 +101,13 @@ varileg_msgs::ExtendedJointStates EposEthercatSlaveManager::getExtendedJointStat
 
   varileg_msgs::ExtendedJointStates extendedJointStates;
 
-  resizeExtendedJointStates(extendedJointStates, eposEthercatSlaves_.size());
+  MELO_INFO_STREAM(eposEthercatSlaves_.size());
+
+ // resizeExtendedJointStates(extendedJointStates, eposEthercatSlaves_.size());
 
   for (const auto &it : eposEthercatSlaves_) {
     EposEthercatSlavePtr eposEthercatSlavePtr = it.second;
+    MELO_INFO_STREAM("slave: " << it.first);
     extendedJointStates.name.push_back(it.first);
 
     JointState jointState = eposEthercatSlavePtr->getReceiveJointState();
@@ -131,14 +134,18 @@ void EposEthercatSlaveManager::resizeExtendedJointStates(varileg_msgs::ExtendedJ
 void EposEthercatSlaveManager::setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories) {
   std::lock_guard<std::mutex> lock(mutex_);
 
-  assert(extendedJointTrajectories.name.size() == eposEthercatSlaves_.size());
+  //assert(extendedJointTrajectories.name.size() == eposEthercatSlaves_.size());
+  //assert(extendedJointTrajectories.position.size() == eposEthercatSlaves_.size());
 
   for (int i = 0; i < extendedJointTrajectories.name.size(); ++i) {
     EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(extendedJointTrajectories.name[i]);
+    MELO_INFO_STREAM(extendedJointTrajectories.name[i]);
     if (!eposEthercatSlavePtr) {
       MELO_ERROR_STREAM("Epos Slave with name " << extendedJointTrajectories.name[i] << " does not exist!")
       return;
     }
+
+    MELO_INFO_STREAM("position: " << extendedJointTrajectories.position.size());
 
     JointTrajectory jointTrajectory;
     jointTrajectory.position = extendedJointTrajectories.position[i];
