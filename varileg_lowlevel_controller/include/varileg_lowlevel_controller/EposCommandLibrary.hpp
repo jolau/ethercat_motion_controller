@@ -55,8 +55,6 @@ const SDO HOMING_METHOD = {"Homing method", 0x6098, 0x00};
 const SDO SOFTWARE_MIN_POSITION_LIMIT = {"Software min position limit", 0x607D, 0x01};
 const SDO SOFTWARE_MAX_POSITION_LIMIT = {"Software max position limit", 0x607D, 0x02};
 const SDO MAX_MOTOR_SPEED = {"Max motor speed", 0x6080, 0x00};
-
-
 }
 
 namespace Controlwords {

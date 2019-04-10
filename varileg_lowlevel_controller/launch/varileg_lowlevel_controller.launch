@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="time_step"                 default="0.01"/>
+  <arg name="time_step"                 default="0.005"/>
   <!--<arg name="launch_prefix"             default="nice -n -10" />-->
   <!--<arg name="launch_prefix_gdb"         default="gdb -ex run &#45;&#45;args" />-->
 

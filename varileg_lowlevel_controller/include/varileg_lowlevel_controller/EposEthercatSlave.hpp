@@ -37,6 +37,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
   void setSendDeviceState(DeviceState sendMotorControllerState);
+  void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
+  void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
 
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
@@ -48,7 +50,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void writeOutbox();
   void shutdown() override;
 
-  bool setup(const EposConfig &eposConfig);
+  bool writeSetup(const EposConfig &eposConfig);
 
   uint8_t readNodeId();
   OperatingMode readOperatingMode();

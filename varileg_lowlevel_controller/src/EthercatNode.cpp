@@ -5,7 +5,7 @@ namespace varileg_lowlevel_controller {
 bool EthercatNode::init() {
   MELO_INFO("init called");
 
-  constexpr double defaultWorkerTimeStep = .01;
+  constexpr double defaultWorkerTimeStep = .005;
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
 
@@ -35,7 +35,10 @@ bool EthercatNode::init() {
     }
   }
 
-  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(workerTimeStep);
+  int interpolationTimePeriod = workerTimeStep * 1000;
+  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
+
+  eposEthercatSlaveManager_->setEncoderConverters("knee_right", {3983.96653}, {-346321.156});
 
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
@@ -50,18 +53,18 @@ void EthercatNode::setupBusManager() {
   soem_interface::EthercatBusBasePtr leftBus = std::make_shared<soem_interface::EthercatBusBase>(leftBusName);
   busManager_->addEthercatBus(leftBus);
 
-  std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves(2);
+  std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves;
   leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
   //leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
-  soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
+ /* soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
   busManager_->addEthercatBus(rightBus);
 
   std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves(2);
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
   //rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
-  slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
+  slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));*/
 }
 
 void EthercatNode::cleanup() {
@@ -79,9 +82,53 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 
   busManager_->receiveAllBusBuffers();
 
- // eposEthercatSlaveManager_->updateWriteAll();
+  eposEthercatSlaveManager_->readAllInboxes();
 
-  //eposEthercatSlaveManager_->updateReadAll();
+  varileg_msgs::ExtendedDeviceStates extendedDeviceStates = eposEthercatSlaveManager_->getExtendedDeviceStates();
+  varileg_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->getExtendedJointStates();
+
+  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
+
+  MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
+
+  for (int i = 0; i < extendedJointStates.name.size(); ++i) {
+    std::string name = extendedJointStates.name[i];
+    MELO_INFO_STREAM(name << i);
+
+    MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i] << " PrimaryPosition: " << extendedJointStates.primary_position[i] << " SecondaryPosition: " << extendedJointStates.secondary_position[i] << " diff: " << (extendedJointStates.primary_position[i] - extendedJointStates.secondary_position[i]));
+    if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+      extendedJointTrajectories.name.push_back(name);
+
+      double position = 0;
+      if(goUp) {
+        if (extendedJointStates.position[i] >= 1.57079) {
+          goUp = false;
+        }
+
+        position = 1.6;
+      } else {
+        if(extendedJointStates.position[i] <= 0) {
+          goUp = true;
+        }
+
+        position = -0.1;
+      }
+
+      extendedJointTrajectories.position.push_back(position);
+
+      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);
+    } else {
+      MELO_INFO_STREAM(name << ": Enabling Drive");
+      varileg_msgs::DeviceState deviceState;
+      deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
+
+      eposEthercatSlaveManager_->setDeviceState(name, deviceState);
+    }
+  }
+
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
+
+  eposEthercatSlaveManager_->writeAllOutboxes();
 
   busManager_->sendAllBusBuffers();
 

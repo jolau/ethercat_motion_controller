@@ -4,7 +4,7 @@
   <arg name="node_path"                 default="$(find varileg_lowlevel_controller)/../../devel/lib/varileg_lowlevel_controller/varileg_lowlevel_controller_node"/>
   <arg name="password"                  default="***REMOVED***"/>
   <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
-  <arg name="time_step"                 default="0.01"/>
+  <arg name="time_step"                 default="0.010"/>
 
   <!-- Launch the lowlevel controller: Setcap and ROS Node -->
   <node pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_setcap.sh" name="varileg_lowlevel_controller_setcap" output="$(arg output)"

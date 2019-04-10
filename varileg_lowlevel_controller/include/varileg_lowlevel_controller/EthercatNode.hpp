@@ -12,7 +12,10 @@ namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
  public:
   EthercatNode() = delete; // constructor needs to take a shared_ptr to a ros::Nodehandle instance.
-  EthercatNode(any_node::Node::NodeHandlePtr nh) : any_node::Node(nh), busManager_(std::make_shared<VarilegEthercatBusManager>()), eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()) {
+  EthercatNode(any_node::Node::NodeHandlePtr nh)
+      : any_node::Node(nh),
+        busManager_(std::make_shared<VarilegEthercatBusManager>()),
+        eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()) {
   }
 
   ~EthercatNode() override {
@@ -33,6 +36,7 @@ class EthercatNode : public any_node::Node {
   VarilegEthercatBusManagerPtr busManager_;
   std::map<std::string, std::vector<soem_interface::EthercatSlaveBasePtr>> slavesOfBusesMap_;
   EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
+  bool goUp = true;
 
   void setupBusManager();
 };
