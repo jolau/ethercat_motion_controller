@@ -9,7 +9,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
 
   std::map<std::string, int> joint2eposMap;
-  joint2eposMap.insert(std::make_pair("hip_left", 3));
+  joint2eposMap.insert(std::make_pair("hip_left", 4));
   joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
