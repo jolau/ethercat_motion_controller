@@ -8,15 +8,15 @@
 class PositionUnitConverter {
  public:
   PositionUnitConverter() = default;
-  PositionUnitConverter(int conversionFactor) : conversionFactor_(conversionFactor) {}
-  float toRad(const int &inc) {
+  PositionUnitConverter(double conversionFactor) : conversionFactor_(conversionFactor) {}
+  double toRad(const int &inc) {
     return ((float) inc) / conversionFactor_;
   };
-  int toInc(const float &rad) {
-    return (int) rad * conversionFactor_;
+  int toInc(const double &rad) {
+    return rad * conversionFactor_;
   };
  private:
-  int conversionFactor_;
+  double conversionFactor_;
 };
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_POSITIONUNITCONVERTER_HPP

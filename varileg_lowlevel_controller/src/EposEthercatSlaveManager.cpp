@@ -133,11 +133,15 @@ void EposEthercatSlaveManager::resizeExtendedJointStates(varileg_msgs::ExtendedJ
 
 void EposEthercatSlaveManager::setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories) {
   std::lock_guard<std::mutex> lock(mutex_);
+  unsigned long nameSize = extendedJointTrajectories.name.size();
 
-  //assert(extendedJointTrajectories.name.size() == eposEthercatSlaves_.size());
-  //assert(extendedJointTrajectories.position.size() == eposEthercatSlaves_.size());
+  if(nameSize != eposEthercatSlaves_.size()) {
+    MELO_WARN_STREAM("ExtendedJointTrajectories does not address all EposEthercatSlaves.");
+  }
 
-  for (int i = 0; i < extendedJointTrajectories.name.size(); ++i) {
+  assert(nameSize == extendedJointTrajectories.position.size());
+
+  for (int i = 0; i < nameSize; ++i) {
     EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(extendedJointTrajectories.name[i]);
     MELO_INFO_STREAM(extendedJointTrajectories.name[i]);
     if (!eposEthercatSlavePtr) {
@@ -164,6 +168,33 @@ void EposEthercatSlaveManager::setDeviceState(const std::string &name, const var
 
   DeviceState deviceState = ConversionTraits<DeviceState, varileg_msgs::DeviceState>::convert(deviceStateRos);
   eposEthercatSlavePtr->setSendDeviceState(deviceState);
+}
+
+void EposEthercatSlaveManager::setEncoderConverters(const std::string &name,
+                                                    PositionUnitConverter primaryEncoderConverter,
+                                                    PositionUnitConverter secondaryEncoderConverter) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
+  if (!eposEthercatSlavePtr) {
+    MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
+    return;
+  }
+
+  eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
+  eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
+}
+
+bool EposEthercatSlaveManager::writeSetup(const std::string &name, const EposConfig eposConfig) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
+  if (!eposEthercatSlavePtr) {
+    MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
+    return false;
+  }
+
+  return eposEthercatSlavePtr->writeSetup(eposConfig);
 }
 
 bool EposEthercatSlaveManager::writeOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos) {
