@@ -18,24 +18,24 @@ namespace lowlvl_communication
   {
     private:
     //Publisher and subscribers
-    ros::Subscriber sub_joint_trajectory_;
-    ros::Publisher pub_joint_state_;
-    ros::Publisher pub_device_state_;
+    ros::Subscriber jointTrajectoriesSubscriber_;
+    ros::Publisher jointStatesPublisher_;
+    ros::Publisher deviceStatePublisher_;
       
     //Action Servers
-    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  as_device_state_;
-    actionlib::SimpleActionServer <varileg_msgs::HomingAction> as_homing_;
+    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServer_;
+    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServer_;
       
     //Client Messages
-    varileg_msgs::ExtendedDeviceStates msg_device_state_;
-    varileg_msgs::ExtendedJointStates msg_joint_state_;
+    varileg_msgs::ExtendedDeviceStates extendedDeviceStates_;
+    varileg_msgs::ExtendedJointStates extendedJointStates_;
     
     //Action Messages
-    varileg_msgs::DeviceStateFeedback feedback_device_state_;
-    varileg_msgs::DeviceStateResult result_device_state_;
+    varileg_msgs::DeviceStateFeedback deviceStateFeedback_;
+    varileg_msgs::DeviceStateResult deviceStateResult_;
 
-    varileg_msgs::HomingFeedback feedback_homing_;
-    varileg_msgs::HomingResult result_homing_;
+    varileg_msgs::HomingFeedback homingFeedback_;
+    varileg_msgs::HomingResult homingResult_;
 
     public:
     ExampleNode() = delete;  
@@ -48,11 +48,11 @@ namespace lowlvl_communication
     void subscriberCallback(const std_msgs::Float32ConstPtr &msg);
     
     //Subscriber
-    void jointTrajectoryCb (const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg);
+    void jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg);
 
     //Action Server
-    void deviceStateCb (const varileg_msgs::DeviceStateGoalConstPtr &goal);
-    void homingCb (const varileg_msgs::HomingGoalConstPtr &goal);
+    void deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal);
+    void homingCallback(const varileg_msgs::HomingGoalConstPtr &goal);
   };
 
 }
