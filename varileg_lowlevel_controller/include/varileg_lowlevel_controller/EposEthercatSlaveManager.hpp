@@ -25,8 +25,12 @@ class EposEthercatSlaveManager {
   varileg_msgs::ExtendedDeviceStates getExtendedDeviceStates();
   varileg_msgs::ExtendedJointStates getExtendedJointStates();
 
+  const boost::tribool isDeviceStateReachable(const std::string &name) const;
+  varileg_msgs::DeviceState getDeviceState(const std::string &name);
+
   void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
   void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
+  void setEncoderConverters(const std::string& name, PositionUnitConverter primaryEncoderConverter, PositionUnitConverter secondaryEncoderConverter);
 
   bool writeSetup(const std::string& name, const EposConfig eposConfig);
   bool writeOperatingMode(const std::string& name, const varileg_msgs::OperatingMode &operatingModeRos);
@@ -41,7 +45,7 @@ class EposEthercatSlaveManager {
   std::map<std::string, EposEthercatSlavePtr> eposEthercatSlaves_;
   std::map<std::string, int> jointName2NodeIdMap_;
 
-  EposEthercatSlavePtr getEposEthercatSlave(const std::string &name);
+  EposEthercatSlavePtr getEposEthercatSlave(const std::string &name) const;
   static void resizeExtendedJointStates(varileg_msgs::ExtendedJointStates &extendedJointStates, const unsigned long &size);
   static void resizeExtendedDeviceStates(varileg_msgs::ExtendedDeviceStates &extendedDeviceStates, const unsigned long &size);
 };

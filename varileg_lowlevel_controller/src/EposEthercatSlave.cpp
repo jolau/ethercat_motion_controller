@@ -90,13 +90,14 @@ void EposEthercatSlave::writeOutbox() {
   RxPdo rxPdo;
 
   uint16_t controlWord = 0;
-  applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
+  /*isDeviceStateReachable_ = */applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
   MELO_INFO_STREAM("Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
                                      << Enum::toString(sendDeviceState_) << " next controlword "
                                      << std::bitset<16>(controlWord));
 
   switch (currentOperatingMode_) {
     case OperatingMode::CSP: {
+      MELO_INFO_STREAM("sendJointTraj.pos: " << sendJointTrajectory_.position);
       rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
       MELO_INFO_STREAM("rx.Target Position: " << rxPdo.targetPosition);
       break;
@@ -118,23 +119,27 @@ void EposEthercatSlave::shutdown() {
   bus_->writeRxPdo(address_, rxPdo);
 }
 
-bool EposEthercatSlave::setup(const EposConfig &eposConfig) {
+bool EposEthercatSlave::writeSetup(const EposConfig &eposConfig) {
   assert(isStartedUp_);
 
   primaryEncoderConverter_ = eposConfig.primaryEncoderConverter;
   secondaryEncoderConverter_ = eposConfig.secondaryEncoderConverter;
 
-  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MIN_POSITION_LIMIT, eposConfig.minPositionLimitInc, true)) {
+ // sendSdoWrite(0x607D, 0x02, false, 7000);
+
+ /* MELO_INFO_STREAM("set min limit: " << eposConfig.minPositionLimitInc);
+  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MIN_POSITION_LIMIT, eposConfig.minPositionLimitInc, false)) {
     return false;
   }
 
-  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MAX_POSITION_LIMIT, eposConfig.maxPositionLimitInc, true)) {
+  MELO_INFO_STREAM("set max limit: " << eposConfig.maxPositionLimitInc)
+  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MAX_POSITION_LIMIT, eposConfig.maxPositionLimitInc, false)) {
     return false;
   }
 
-  if(!writeSDO(EposCommandLibrary::SDOs::MAX_MOTOR_SPEED, eposConfig.maxMotorSpeedRpm, true)) {
+  /*if(!writeSDO(EposCommandLibrary::SDOs::MAX_MOTOR_SPEED, eposConfig.maxMotorSpeedRpm, true)) {
     return false;
-  }
+  }*/
 
   return true;
 }
@@ -181,7 +186,8 @@ uint8_t EposEthercatSlave::readNodeId() {
 }
 
 bool EposEthercatSlave::writeInterpolationTimePeriod(uint8_t timePeriod) {
-  return writeSDO(EposCommandLibrary::SDOs::INTERPOLATION_TIME_PERIOD_VALUE, timePeriod, true);
+  MELO_INFO_STREAM("Write Interpolation time period: " << static_cast<int>(timePeriod));
+  return writeSDO(EposCommandLibrary::SDOs::INTERPOLATION_TIME_PERIOD_VALUE, timePeriod, false);
 }
 
 template<typename Value>
@@ -341,10 +347,13 @@ void EposEthercatSlave::setSendHomingState(HomingState sendHomingState) {
   sendHomingState_ = sendHomingState;
 }
 
-void EposEthercatSlave::setSendDeviceState(DeviceState sendMotorControllerState) {
+void EposEthercatSlave::setSendDeviceState(DeviceState sendDeviceState) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
+  if(sendDeviceState_ != sendDeviceState) {
+    isDeviceStateReachable_ = boost::indeterminate;
+  }
 
-  sendDeviceState_ = sendMotorControllerState;
+  sendDeviceState_ = sendDeviceState;
 }
 
 void EposEthercatSlave::setSendJointTrajectory(const JointTrajectory &sendJointTrajectory) {
@@ -362,6 +371,24 @@ OperatingMode EposEthercatSlave::getCurrentOperatingMode() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   return currentOperatingMode_;
+}
+
+void EposEthercatSlave::setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  primaryEncoderConverter_ = primaryEncoderConverter;
+}
+
+void EposEthercatSlave::setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  secondaryEncoderConverter_ = secondaryEncoderConverter;
+}
+
+const boost::tribool &EposEthercatSlave::isDeviceStateReachable() const {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  return isDeviceStateReachable_;
 }
 
 }
