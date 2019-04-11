@@ -5,17 +5,17 @@ publishers:
     latch: false
   
   joint_state:
-    topic: /joint_state
+    topic: /joint_states
     queue_size: 1
     latch: false
   
   device_state:
-    topic: /device_state
+    topic: /device_states
     queue_size: 1
     latch: false
   
   joint_trajectory_pub:
-    topic: /joint_trajectory
+    topic: /joint_trajectories
     queue_size: 1
     latch: false
   
@@ -26,6 +26,6 @@ subscribers:
     latch: false
   
   joint_trajectory:
-    topic: /joint_trajectory
+    topic: /joint_trajectories
     queue_size: 1
     latch: false
