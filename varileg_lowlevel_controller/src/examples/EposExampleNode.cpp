@@ -13,7 +13,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
 
   std::map<std::string, int> joint2eposMap;
   joint2eposMap.insert(std::make_pair("hip_left", 4));
-  joint2eposMap.insert(std::make_pair("knee_left", 2));
+ // joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
   EposEthercatSlavePtr eposEthercatSlaveOne = std::make_shared<EposEthercatSlave>("epos1", bus_, 1);
@@ -32,9 +32,11 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   bus_->setState(EC_STATE_OPERATIONAL);
 
   if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveOne)) {
-    MELO_ERROR("Could add epos one to manager.")
+    MELO_ERROR("Could not add epos one to manager.")
     return false;
   };
+
+  eposEthercatSlaveManager_->setEncoderConverters("hip_left", {3983.96653}, {-346321.156});
 
  /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
     MELO_ERROR("Could add epos two to manager.")
@@ -81,23 +83,23 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::update(const any_wo
     std::string name = extendedJointStates.name[i];
     MELO_INFO_STREAM(name << i);
 
+      MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i] << " PrimaryPosition: " << extendedJointStates.primary_position[i] << " SecondaryPosition: " << extendedJointStates.secondary_position[i] << " diff: " << (extendedJointStates.primary_position[i] - extendedJointStates.secondary_position[i]));
     if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
       extendedJointTrajectories.name.push_back(name);
-      MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i]);
 
       double position = 0;
       if(goUp) {
-        if (extendedJointStates.position[i] >= 5000) {
+        if (extendedJointStates.position[i] >= 1.57079) {
           goUp = false;
         }
           
-        position = 5100;
+        position = 1.6;
       } else {
         if(extendedJointStates.position[i] <= 0) {
           goUp = true;
         }
 
-        position = -100;
+        position = -0.1;
       }
 
       extendedJointTrajectories.position.push_back(position);
