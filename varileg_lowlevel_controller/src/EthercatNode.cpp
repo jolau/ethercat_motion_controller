@@ -10,7 +10,7 @@ bool EthercatNode::init() {
   deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_state","device_state",1);
 
   //Subscriber
-  jointTrajectoriesSubscriber_ = subscribe("joint_trajectory", "joint_trajectory", defaultQueueSize,
+  jointTrajectoriesSubscriber_ = subscribe("joint_trajectory", "/joint_trajectory", defaultQueueSize,
                                            &EthercatNode::jointTrajectoriesCallback, this);
 
   constexpr double defaultWorkerTimeStep = .005;
@@ -98,7 +98,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   jointStatesPublisher_.publish(extendedJointStates);
   deviceStatePublisher_.publish(extendedDeviceStates);
 
-  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
+ /* varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
 
   MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
 
@@ -137,7 +137,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
     }
   }
 
-  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);*/
 
   eposEthercatSlaveManager_->writeAllOutboxes();
 
@@ -150,32 +150,31 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg)
 {
   MELO_INFO("Received jointTrajectoriesCallback Topic");
-  msg->name[0];
-  msg->position[0];
-  /* @Jonas
-  Fülle die Einträge mit Daten
-  */
+
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(*msg);
 }
 
 //Action Server
 void EthercatNode::deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal)
 {
-  MELO_INFO("Received deviceStateCallback Action");
-/*
-  ros::Rate rate(0.005);
+  MELO_INFO_STREAM("Received deviceStateCallback Action Goal:" << static_cast<int>(goal->target_device_state.state));
+
+  ros::Rate rate(100);
 
   const std::string jointName = "knee_right";
   eposEthercatSlaveManager_->setDeviceState(jointName, goal->target_device_state);
 
   varileg_msgs::DeviceState currentDeviceState = eposEthercatSlaveManager_->getDeviceState(jointName);
-  while(goal->target_device_state.state != currentDeviceState.state && eposEthercatSlaveManager_->isDeviceStateReachable(jointName) != false) {
-    if(deviceStateActionServer_.isPreemptRequested()|| !ros::ok()) {
+  while(goal->target_device_state.state != currentDeviceState.state && eposEthercatSlaveManager_->isDeviceStateReachable(jointName)) {
+    if(deviceStateActionServer_.isPreemptRequested() || !ros::ok()) {
       deviceStateActionServer_.setPreempted();
       deviceStateResult_.successful = false;
       break;
     }
 
     currentDeviceState = eposEthercatSlaveManager_->getDeviceState(jointName);
+
+    MELO_INFO_STREAM("callback: target: " << static_cast<int>(goal->target_device_state.state) << " current: " << static_cast<int>(currentDeviceState.state) << " reachable: " << eposEthercatSlaveManager_->isDeviceStateReachable(jointName));
 
     deviceStateFeedback_.current_device_state = currentDeviceState;
     deviceStateActionServer_.publishFeedback(deviceStateFeedback_);
@@ -191,22 +190,41 @@ void EthercatNode::deviceStateCallback(const varileg_msgs::DeviceStateGoalConstP
 
   deviceStateResult_.reached_device_state = currentDeviceState;
 
-  deviceStateActionServer_.setSucceeded(deviceStateResult_);*/
+  deviceStateActionServer_.setSucceeded(deviceStateResult_);
 }
 
 //Action Server
 void EthercatNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
 {
-  MELO_INFO("Received homingCallback Action");
+  MELO_INFO_STREAM("Received homingCallback Action Goal: " << static_cast<int>(goal->mode));
 
-  /* @Jonas
-  goal -> ?
-  homingFeedback_.interrupted = [...];
-  homingActionServer_.publishFeedback(homingFeedback_);
-  homingResult_.successful = [...];
-   homingActionServer_.isPreemptedRequested();
-  */
+  ros::Rate rate(100);
+
+  const std::string jointName = "knee_right";
+  varileg_msgs::OperatingMode operatingMode;
+
+  operatingMode.mode = varileg_msgs::OperatingMode::MODE_HMM;
+  eposEthercatSlaveManager_->writeOperatingMode(jointName, operatingMode);
+
+  eposEthercatSlaveManager_->writeHomingMethod(jointName, goal->mode);
+
+  eposEthercatSlaveManager_->setHomingState(jointName, HomingState::HOMING_IN_PROGRESS);
+
+/*  HomingState currentHomingState;
+  do {
+    rate.sleep();
+
+    currentHomingState = eposEthercatSlaveManager_->getHomingState(jointName);
+
+    homingFeedback_.interrupted = currentHomingState == HomingState::HOMING_INTERRUPTED;
+    homingActionServer_.publishFeedback(homingFeedback_);
+  } while(currentHomingState != HomingState::HOMING_SUCCESSFUL);
+
+  homingResult_.successful = currentHomingState == HomingState::HOMING_SUCCESSFUL;
   homingActionServer_.setSucceeded(homingResult_);
+
+  operatingMode.mode = varileg_msgs::OperatingMode::MODE_CSP;
+  eposEthercatSlaveManager_->writeOperatingMode(jointName, operatingMode);*/
 }
 
 void EthercatNode::preCleanup() {
