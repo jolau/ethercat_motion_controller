@@ -16,7 +16,6 @@
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 #include "varileg_lowlevel_controller/entities/EposConfig.hpp"
-#include "boost/logic/tribool.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -34,6 +33,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   * @return
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
+  const bool isDeviceStateReachable() const;
 
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
@@ -41,7 +41,6 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
 
-  const boost::tribool &isDeviceStateReachable() const;
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
   const DeviceState getReceiveDeviceState() const;
@@ -81,19 +80,19 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
 
-  JointState receiveJointState_;
-  JointTrajectory sendJointTrajectory_;
+  JointState receiveJointState_ {0, 0, 0, 0, 0};
+  JointTrajectory sendJointTrajectory_ {0, 0, 0};
 
-  HomingState sendHomingState_;
-  HomingState receiveHomingState_;
+  HomingState sendHomingState_ = HomingState::UNKNOWN;
+  HomingState receiveHomingState_ = HomingState::UNKNOWN;
 
-  DeviceState sendDeviceState_;
-  DeviceState receiveDeviceState_;
+  DeviceState sendDeviceState_ = DeviceState::STATE_UNKNOWN;
+  DeviceState receiveDeviceState_ = DeviceState::STATE_UNKNOWN;
 
   // Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
 
-  boost::logic::tribool isDeviceStateReachable_ {boost::indeterminate};
+  bool isDeviceStateReachable_ {true};
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;
