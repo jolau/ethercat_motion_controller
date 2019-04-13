@@ -10,6 +10,7 @@
 #include <soem_interface/EthercatSlaveBase.hpp>
 #include <varileg_lowlevel_controller/entities/JointState.hpp>
 #include <varileg_lowlevel_controller/entities/JointTrajectory.hpp>
+#include <varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp>
 #include "varileg_lowlevel_controller/entities/RxPdo.hpp"
 #include "varileg_lowlevel_controller/entities/TxPdo.hpp"
 #include "EposCommandLibrary.hpp"
@@ -40,6 +41,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void setSendDeviceState(DeviceState sendDeviceState);
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
+  void setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker);
 
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
@@ -77,6 +79,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   PdoInfo pdoInfo_;
   PositionUnitConverter primaryEncoderConverter_ = {1};
   PositionUnitConverter secondaryEncoderConverter_ = {1};
+  EncoderCrosschecker encoderCrosschecker_;
 
   OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
 

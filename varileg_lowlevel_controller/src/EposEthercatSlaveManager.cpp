@@ -221,9 +221,10 @@ varileg_msgs::DeviceState EposEthercatSlaveManager::getDeviceState(const std::st
   return ConversionTraits<DeviceState, varileg_msgs::DeviceState>::convert(eposEthercatSlavePtr->getReceiveDeviceState());
 }
 
-void EposEthercatSlaveManager::setEncoderConverters(const std::string &name,
-                                                    PositionUnitConverter primaryEncoderConverter,
-                                                    PositionUnitConverter secondaryEncoderConverter) {
+void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
+                                                PositionUnitConverter primaryEncoderConverter,
+                                                PositionUnitConverter secondaryEncoderConverter,
+                                                EncoderCrosschecker encoderCrosschecker) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
@@ -234,6 +235,7 @@ void EposEthercatSlaveManager::setEncoderConverters(const std::string &name,
 
   eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
   eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
+  eposEthercatSlavePtr->setEncoderCrosschecker(encoderCrosschecker);
 }
 
 bool EposEthercatSlaveManager::writeSetup(const std::string &name, const EposConfig eposConfig) {

@@ -90,11 +90,16 @@ void EposEthercatSlave::writeOutbox() {
   RxPdo rxPdo;
 
   uint16_t controlWord = 0;
-  isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
+  if(!encoderCrosschecker_.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition) && receiveDeviceState_ == DeviceState::STATE_OP_ENABLED) {
+    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_QUICK_STOP_ACTIVE);
+    // TODO write error
+  } else {
+    isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
 
-  // latch to current state if state is not reachable
-  if(!isDeviceStateReachable_) {
-    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, receiveDeviceState_);
+    // latch to current state if state is not reachable
+    if (!isDeviceStateReachable_) {
+      applyNextDeviceStateTransition(controlWord, receiveDeviceState_, receiveDeviceState_);
+    }
   }
 
   switch (currentOperatingMode_) {
@@ -396,6 +401,10 @@ const bool EposEthercatSlave::isDeviceStateReachable() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   return isDeviceStateReachable_;
+}
+
+void EposEthercatSlave::setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker) {
+  encoderCrosschecker_ = encoderCrosschecker;
 }
 
 }

@@ -31,7 +31,10 @@ class EposEthercatSlaveManager {
 
   void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
   void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
-  void setEncoderConverters(const std::string& name, PositionUnitConverter primaryEncoderConverter, PositionUnitConverter secondaryEncoderConverter);
+  void setEncoderConfig(const std::string &name,
+                        PositionUnitConverter primaryEncoderConverter,
+                        PositionUnitConverter secondaryEncoderConverter,
+                        EncoderCrosschecker encoderCrosschecker);
   void setHomingState(const std::string &name, const HomingState &homingState);
 
   bool writeSetup(const std::string& name, const EposConfig eposConfig);
