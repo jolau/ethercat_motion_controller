@@ -10,8 +10,8 @@ ExampleNode::ExampleNode(any_node::Node::NodeHandlePtr nh): any_node::Node(nh),
   deviceStateActionServer_.start();
   homingActionServer_.start();
 }
-
-bool ExampleNode::init()
+   
+bool ExampleNode::init() 
 {
   constexpr unsigned int defaultQueueSize = 1;
   //Publisher
@@ -27,12 +27,18 @@ bool ExampleNode::init()
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
   addWorker("exampleNode::updateWorker", workerTimeStep, &ExampleNode::update, this, priority);
+  constexpr unsigned int defaultQueueSize = 1;
 
+  ros::Publisher my_publisher = advertise<std_msgs::String>("my_publisher_name", "/default_publisher_topic", defaultQueueSize);
+  ros::Subscriber my_subscriber = subscribe("my_subscriber_name", "/default_subscriber_topic", defaultQueueSize, &ExampleNode::subscriberCallback, this);
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////
   ////////////// New stuff                                                          ////////////
   /////////////////////////////////////////////////////////////////////////////////////////////
-
-
+  
+  //Subscriber
+  sub_joint_trajectory_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize, &ExampleNode::jointTrajectoryCb, this);
+   
   return true;
 }
 
@@ -75,7 +81,54 @@ void ExampleNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
   */   
   homingActionServer_.setSucceeded(homingResult_);
 }
-//Publisher
+
+void ExampleNode::homingCbHipLeft (const varileg_msgs::HomingGoalConstPtr &goal)
+{
+  varileg_msgs::HomingFeedback feedback_homing;
+  varileg_msgs::HomingResult result_homing;
+  MELO_INFO("Received homingCb Action");
+
+  /* @Jonas
+  goal -> ?
+  feedback_homing.interrupted = [...];
+  as_homing_hip_left_.publishFeedback(feedback_homing);
+  result_homing.successful = [...];
+  */   
+  as_homing_hip_left_.setSucceeded(result_homing); 
+}
+
+void ExampleNode::homingCbKneeRight (const varileg_msgs::HomingGoalConstPtr &goal)
+{
+  varileg_msgs::HomingFeedback feedback_homing;
+  varileg_msgs::HomingResult result_homing;
+  MELO_INFO("Received homingCb Action");
+
+  /* @Jonas
+  goal -> ?
+  feedback_homing.interrupted = [...];
+  as_homing_knee_right_.publishFeedback(feedback_homing);
+  result_homing.successful = [...];
+  */   
+  as_homing_knee_right_.setSucceeded(result_homing); 
+}
+
+void ExampleNode::homingCbKneeLeft (const varileg_msgs::HomingGoalConstPtr &goal)
+{
+  varileg_msgs::HomingFeedback feedback_homing;
+  varileg_msgs::HomingResult result_homing;
+  MELO_INFO("Received homingCb Action");
+
+  /* @Jonas
+  goal -> ?
+  feedback_homing.interrupted = [...];
+  as_homing_knee_left_.publishFeedback(feedback_homing);
+  result_homing.successful = [...];
+  */   
+  as_homing_knee_left_.setSucceeded(result_homing); 
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////// Publisher                                                                               /////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool ExampleNode::update(const any_worker::WorkerEvent& event)
 {  
   jointStatesPublisher_.publish(extendedJointStates_);
@@ -96,6 +149,12 @@ void ExampleNode::preCleanup()
 {
   // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
   MELO_INFO("preCleanup called");
+}
+
+void ExampleNode::subscriberCallback(const std_msgs::Float32ConstPtr &msg)
+{
+  // called asynchrounously when ros messages arrive for the subscriber created in init() function
+  MELO_INFO("received ros message: %f", msg->data);
 }
 
 }
