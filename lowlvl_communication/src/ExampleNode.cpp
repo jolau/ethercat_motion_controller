@@ -2,24 +2,41 @@
 
 namespace lowlvl_communication {
 
+
 ExampleNode::ExampleNode(any_node::Node::NodeHandlePtr nh): any_node::Node(nh), 
-   deviceStateActionServer_(*nh, "DeviceState", boost::bind (&ExampleNode::deviceStateCallback, this, _1),false),
-   homingActionServer_(*nh, "Homing" , boost::bind(&ExampleNode::homingCallback, this, _1),false)
+   deviceStateActionServerHipRight_(*nh_, "DeviceStateHipRight", boost::bind (&ExampleNode::deviceStateCallbackHipRight, this, _1),false),
+   deviceStateActionServerHipLeft_(*nh_, "DeviceStateHipLeft", boost::bind (&ExampleNode::deviceStateCallbackHipLeft, this, _1),false),
+   deviceStateActionServerKneeRight_(*nh_, "DeviceStateKneeRight", boost::bind (&ExampleNode::deviceStateCallbackKneeRight, this, _1),false),
+   deviceStateActionServerKneeLeft_(*nh_, "DeviceStateKneeLeft", boost::bind (&ExampleNode::deviceStateCallbackKneeLeft, this, _1),false),
+   
+   homingActionServerHipRight_(*nh_, "HomingHipRight" , boost::bind(&ExampleNode::homingCallbackHipRight, this, _1),false),
+   homingActionServerHipLeft_(*nh_, "HomingHipLeft" , boost::bind(&ExampleNode::homingCallbackHipLeft, this, _1),false),
+   homingActionServerKneeRight_(*nh_, "HomingKneeRight" , boost::bind(&ExampleNode::homingCallbackKneeRight, this, _1),false),
+   homingActionServerKneeLeft_(*nh_, "HomingKneeLeft" , boost::bind(&ExampleNode::homingCallbackKneeLeft, this, _1),false) 
 {
   //Action Server
-  deviceStateActionServer_.start();
-  homingActionServer_.start();
+  deviceStateActionServerHipRight_.start();
+  deviceStateActionServerHipLeft_.start();
+  deviceStateActionServerKneeRight_.start();
+  deviceStateActionServerKneeLeft_.start();
+
+  homingActionServerHipRight_.start();
+  homingActionServerHipLeft_.start();
+  homingActionServerKneeRight_.start();
+  homingActionServerKneeLeft_.start();
+  
+  //Publisher
+  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_states","joint_states",1);
+  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_states","device_states",1);
+
 }
    
 bool ExampleNode::init() 
 {
   constexpr unsigned int defaultQueueSize = 1;
-  //Publisher
-  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_state","joint_state",1);
-  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_state","device_state",1);
-
+  
   //Subscriber
-  jointTrajectoriesSubscriber_ = subscribe("joint_trajectory", "joint_trajectory", defaultQueueSize,
+  jointTrajectoriesSubscriber_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize,
                                           &ExampleNode::jointTrajectoriesCallback, this);
 
 
@@ -27,18 +44,8 @@ bool ExampleNode::init()
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
   addWorker("exampleNode::updateWorker", workerTimeStep, &ExampleNode::update, this, priority);
-  constexpr unsigned int defaultQueueSize = 1;
-
-  ros::Publisher my_publisher = advertise<std_msgs::String>("my_publisher_name", "/default_publisher_topic", defaultQueueSize);
-  ros::Subscriber my_subscriber = subscribe("my_subscriber_name", "/default_subscriber_topic", defaultQueueSize, &ExampleNode::subscriberCallback, this);
   
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  ////////////// New stuff                                                          ////////////
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  
-  //Subscriber
-  sub_joint_trajectory_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize, &ExampleNode::jointTrajectoryCb, this);
-   
+ 
   return true;
 }
 
@@ -52,80 +59,148 @@ void ExampleNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTra
   Fülle die Einträge mit Daten
   */
 }
-//Action Server
-void ExampleNode::deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////// Device State Action Server                                                              /////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ExampleNode::deviceStateCallbackHipRight (const varileg_msgs::DeviceStateGoalConstPtr &goal)
 {
+  varileg_msgs::DeviceStateFeedback deviceStateFeedback;
+  varileg_msgs::DeviceStateResult deviceStateResult;
+
   MELO_INFO("Received deviceStateCallback Action");
   goal->target_device_state;
   
   /* @Jonas
-  deviceStateFeedback_.current_device_state = [...];
-  deviceStateActionServer_.publishFeedback(deviceStateFeedback_);
-  deviceStateResult_.successful = [...];
-  deviceStateResult_.reached_device_state = [...];
+  deviceStateFeedback.current_device_state = [...]; 
+  deviceStateActionServerHipRight_.publishFeedback(feedback_device_state);
+  deviceStateResult.successful = [...];
+  deviceStateResult.reached_device_state = [...];
   */
   
-  deviceStateActionServer_.setSucceeded(deviceStateResult_);
+  deviceStateActionServerHipRight_.setSucceeded(deviceStateResult);
 }
-//Action Server
-void ExampleNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
+
+void ExampleNode::deviceStateCallbackHipLeft (const varileg_msgs::DeviceStateGoalConstPtr &goal)
 {
+  varileg_msgs::DeviceStateFeedback deviceStateFeedback;
+  varileg_msgs::DeviceStateResult deviceStateResult;
+
+  MELO_INFO("Received deviceStateCallback Action");
+  goal->target_device_state;
+  
+  /* @Jonas
+  deviceStateFeedback.current_device_state = [...]; 
+  deviceStateActionServerHipLeft_.publishFeedback(feedback_device_state);
+  deviceStateResult.successful = [...];
+  deviceStateResult.reached_device_state = [...];
+  */
+  
+  deviceStateActionServerHipLeft_.setSucceeded(deviceStateResult);
+}
+
+void ExampleNode::deviceStateCallbackKneeRight (const varileg_msgs::DeviceStateGoalConstPtr &goal)
+{
+  varileg_msgs::DeviceStateFeedback deviceStateFeedback;
+  varileg_msgs::DeviceStateResult deviceStateResult;
+
+  MELO_INFO("Received deviceStateCallback Action");
+  goal->target_device_state;
+  
+  /* @Jonas
+  deviceStateFeedback.current_device_state = [...]; 
+  deviceStateActionServerKneeRight_.publishFeedback(feedback_device_state);
+  deviceStateResult.successful = [...];
+  deviceStateResult.reached_device_state = [...];
+  */
+  
+  deviceStateActionServerKneeRight_.setSucceeded(deviceStateResult);
+}
+
+void ExampleNode::deviceStateCallbackKneeLeft (const varileg_msgs::DeviceStateGoalConstPtr &goal)
+{
+  varileg_msgs::DeviceStateFeedback deviceStateFeedback;
+  varileg_msgs::DeviceStateResult deviceStateResult;
+
+  MELO_INFO("Received deviceStateCallback Action");
+  goal->target_device_state;
+  
+  /* @Jonas
+  deviceStateFeedback.current_device_state = [...]; 
+  deviceStateActionServerKneeLeft_.publishFeedback(feedback_device_state);
+  deviceStateResult.successful = [...];
+  deviceStateResult.reached_device_state = [...];
+  */
+  
+  deviceStateActionServerKneeLeft_.setSucceeded(deviceStateResult);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////// Homing Action Server                                                                    /////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ExampleNode::homingCallbackHipRight (const varileg_msgs::HomingGoalConstPtr &goal)
+{
+  varileg_msgs::HomingFeedback homingFeedback;
+  varileg_msgs::HomingResult homingResult;
   MELO_INFO("Received homingCallback Action");
 
   /* @Jonas
   goal -> ?
-  homingFeedback_.interrupted = [...];
-  homingActionServer_.publishFeedback(homingFeedback_);
-  homingResult_.successful = [...];
-   homingActionServer_.isPreemptedRequested();
+  homingFeedback.interrupted = [...];
+  homingActionServerHipRight_.publishFeedback(feedback_homing);
+  homingResult.successful = [...];
   */   
-  homingActionServer_.setSucceeded(homingResult_);
+  homingActionServerHipRight_.setSucceeded(homingResult); 
 }
 
-void ExampleNode::homingCbHipLeft (const varileg_msgs::HomingGoalConstPtr &goal)
+void ExampleNode::homingCallbackHipLeft (const varileg_msgs::HomingGoalConstPtr &goal)
 {
-  varileg_msgs::HomingFeedback feedback_homing;
-  varileg_msgs::HomingResult result_homing;
-  MELO_INFO("Received homingCb Action");
+  varileg_msgs::HomingFeedback homingFeedback;
+  varileg_msgs::HomingResult homingResult;
+  MELO_INFO("Received homingCallback Action");
 
   /* @Jonas
   goal -> ?
-  feedback_homing.interrupted = [...];
-  as_homing_hip_left_.publishFeedback(feedback_homing);
-  result_homing.successful = [...];
+  homingFeedback.interrupted = [...];
+  homingActionServerHipLeft_.publishFeedback(feedback_homing);
+  homingResult.successful = [...];
   */   
-  as_homing_hip_left_.setSucceeded(result_homing); 
+  homingActionServerHipLeft_.setSucceeded(homingResult); 
 }
 
-void ExampleNode::homingCbKneeRight (const varileg_msgs::HomingGoalConstPtr &goal)
+void ExampleNode::homingCallbackKneeRight (const varileg_msgs::HomingGoalConstPtr &goal)
 {
-  varileg_msgs::HomingFeedback feedback_homing;
-  varileg_msgs::HomingResult result_homing;
-  MELO_INFO("Received homingCb Action");
+  varileg_msgs::HomingFeedback homingFeedback;
+  varileg_msgs::HomingResult homingResult;
+  MELO_INFO("Received homingCallback Action");
 
   /* @Jonas
   goal -> ?
-  feedback_homing.interrupted = [...];
-  as_homing_knee_right_.publishFeedback(feedback_homing);
-  result_homing.successful = [...];
+  homingFeedback.interrupted = [...];
+  homingActionServerKneeRight_.publishFeedback(feedback_homing);
+  homingResult.successful = [...];
   */   
-  as_homing_knee_right_.setSucceeded(result_homing); 
+  homingActionServerKneeRight_.setSucceeded(homingResult); 
 }
 
-void ExampleNode::homingCbKneeLeft (const varileg_msgs::HomingGoalConstPtr &goal)
+void ExampleNode::homingCallbackKneeLeft (const varileg_msgs::HomingGoalConstPtr &goal)
 {
-  varileg_msgs::HomingFeedback feedback_homing;
-  varileg_msgs::HomingResult result_homing;
-  MELO_INFO("Received homingCb Action");
+  varileg_msgs::HomingFeedback homingFeedback;
+  varileg_msgs::HomingResult homingResult;
+  MELO_INFO("Received homingCallback Action");
 
   /* @Jonas
   goal -> ?
-  feedback_homing.interrupted = [...];
-  as_homing_knee_left_.publishFeedback(feedback_homing);
-  result_homing.successful = [...];
+  homingFeedback.interrupted = [...];
+  homingActionServerKneeLeft_.publishFeedback(feedback_homing);
+  homingResult.successful = [...];
   */   
-  as_homing_knee_left_.setSucceeded(result_homing); 
+  homingActionServerKneeLeft_.setSucceeded(homingResult);
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////// Publisher                                                                               /////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

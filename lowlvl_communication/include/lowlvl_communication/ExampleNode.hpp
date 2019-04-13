@@ -23,20 +23,21 @@ namespace lowlvl_communication
     ros::Publisher deviceStatePublisher_;
       
     //Action Servers
-    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServer_;
-    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServer_;
+    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServerHipRight_;
+    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServerHipLeft_;
+    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServerKneeRight_;
+    actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServerKneeLeft_;
+   
+    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerHipRight_;
+    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerHipLeft_;
+    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeRight_;
+    actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeLeft_;
+    
       
     //Client Messages
     varileg_msgs::ExtendedDeviceStates extendedDeviceStates_;
     varileg_msgs::ExtendedJointStates extendedJointStates_;
-    
-    //Action Messages
-    varileg_msgs::DeviceStateFeedback deviceStateFeedback_;
-    varileg_msgs::DeviceStateResult deviceStateResult_;
-
-    varileg_msgs::HomingFeedback homingFeedback_;
-    varileg_msgs::HomingResult homingResult_;
-
+  
     public:
     ExampleNode() = delete;  
     ExampleNode(any_node::Node::NodeHandlePtr nh);
@@ -51,8 +52,15 @@ namespace lowlvl_communication
     void jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg);
 
     //Action Server
-    void deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal);
-    void homingCallback(const varileg_msgs::HomingGoalConstPtr &goal);
+    void deviceStateCallbackHipRight (const varileg_msgs::DeviceStateGoalConstPtr &goal);
+    void deviceStateCallbackHipLeft (const varileg_msgs::DeviceStateGoalConstPtr &goal);
+    void deviceStateCallbackKneeRight (const varileg_msgs::DeviceStateGoalConstPtr &goal);
+    void deviceStateCallbackKneeLeft (const varileg_msgs::DeviceStateGoalConstPtr &goal);
+    
+    void homingCallbackHipRight (const varileg_msgs::HomingGoalConstPtr &goal);
+    void homingCallbackHipLeft (const varileg_msgs::HomingGoalConstPtr &goal);
+    void homingCallbackKneeRight (const varileg_msgs::HomingGoalConstPtr &goal);
+    void homingCallbackKneeLeft (const varileg_msgs::HomingGoalConstPtr &goal);
   };
 
 }
