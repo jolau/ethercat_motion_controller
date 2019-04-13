@@ -36,7 +36,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };
 
-  eposEthercatSlaveManager_->setEncoderConverters("hip_left", {3983.96653}, {-346321.156});
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {3983.96653}, {-346321.156}, EncoderCrosschecker());
 
  /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
     MELO_ERROR("Could add epos two to manager.")
