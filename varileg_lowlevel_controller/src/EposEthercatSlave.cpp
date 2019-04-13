@@ -90,19 +90,21 @@ void EposEthercatSlave::writeOutbox() {
   RxPdo rxPdo;
 
   uint16_t controlWord = 0;
-  if(!encoderCrosschecker_.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition) && receiveDeviceState_ == DeviceState::STATE_OP_ENABLED) {
+/*  if(!encoderCrosschecker_.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition) && receiveDeviceState_ == DeviceState::STATE_OP_ENABLED) {
     applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_QUICK_STOP_ACTIVE);
     // TODO write error
-  } else {
+  } else {*/
     isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
 
     // latch to current state if state is not reachable
-    if (!isDeviceStateReachable_) {
+   /* if (!isDeviceStateReachable_) {
       applyNextDeviceStateTransition(controlWord, receiveDeviceState_, receiveDeviceState_);
-    }
-  }
+    }*/
+ // }
 
-  switch (currentOperatingMode_) {
+  rxPdo.mode = 0x06;
+
+  switch (readOperatingMode()) {
     case OperatingMode::CSP: {
       MELO_INFO_STREAM("Current Mode is CSP.");
       MELO_INFO_STREAM("sendJointTraj.pos: " << sendJointTrajectory_.position);
@@ -112,7 +114,11 @@ void EposEthercatSlave::writeOutbox() {
     }
     case OperatingMode::HMM: {
       MELO_INFO_STREAM("Current Mode is HMM.");
-      applyNextHomingStateTransition(controlWord, sendHomingState_);
+      /*rxPdo.targetPosition = 0;
+      //applyNextHomingStateTransition(controlWord, sendHomingState_);*/
+      if(receiveDeviceState_ == DeviceState::STATE_OP_ENABLED ) {
+        controlWord = 0x001F;
+      }
       break;
     }
   }
@@ -161,7 +167,7 @@ bool EposEthercatSlave::writeOperatingMode(const OperatingMode &operatingMode) {
 
   MELO_INFO_STREAM("setting operating mode: " <<  Enum::toString(operatingMode));
 
-  // set mode to CSP
+  // set mode
   if (!writeSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION, operatingModeCommand, true)) {
     MELO_ERROR_STREAM(name_ << ": Could not set mode: " << Enum::toString(operatingMode));
     return false;
@@ -329,7 +335,7 @@ bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
       return false;
     case HomingState::HOMING_IN_PROGRESS:
       EposCommandLibrary::Controlwords::HOMING_OP_START.apply(controlword);
-      EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
+    //  EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
       return true;
     case HomingState::HOMING_INTERRUPTED:
       EposCommandLibrary::Controlwords::HOMING_HALT_ENABLE.apply(controlword);

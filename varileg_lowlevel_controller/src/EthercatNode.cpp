@@ -18,7 +18,7 @@ bool EthercatNode::init() {
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
 
-  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"knee_right" , 4}});
+  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"knee_right" , 3}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
 
   for (auto &pair : jointName2NodeIdMap) {
@@ -45,10 +45,47 @@ bool EthercatNode::init() {
   }
 
   int interpolationTimePeriod = workerTimeStep * 1000;
-  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
+  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(0);
 
   EncoderCrosschecker encoderCrosschecker = HipEncoderCrosschecker(0);
   eposEthercatSlaveManager_->setEncoderConfig("knee_right", {3983.96653}, {-346321.156}, encoderCrosschecker);
+
+  const std::string jointName = "knee_right";
+  varileg_msgs::OperatingMode operatingMode;
+
+  soem_interface::EthercatBusBasePtr bus = busManager_->getBusByName("ens9");
+ /* bus->setState(EC_STATE_PRE_OP, 1);
+  if (!bus->waitForState(EC_STATE_PRE_OP, 1)) {
+    MELO_ERROR_STREAM(": not entered PRE OP");
+    //return false;
+  }
+
+  ros::Duration(5).sleep();
+
+  operatingMode.mode = varileg_msgs::OperatingMode::MODE_HMM;
+  eposEthercatSlaveManager_->writeOperatingMode(jointName, operatingMode);
+
+  ros::Duration(5).sleep();
+
+  bus->setState(EC_STATE_SAFE_OP, 1);
+  ros::Duration(5).sleep();
+  if (!bus->waitForState(EC_STATE_SAFE_OP, 1)) {
+    MELO_ERROR_STREAM(": not entered OP");
+    //return false;
+  }
+
+  ros::Duration(5).sleep();
+
+  bus->setState(EC_STATE_OPERATIONAL, 1);
+  ros::Duration(5).sleep();
+  if (!bus->waitForState(EC_STATE_OPERATIONAL, 1)) {
+    MELO_ERROR_STREAM(": not entered OP");
+    //return false;
+  }
+
+  ros::Duration(5).sleep();
+*/
+ //eposEthercatSlaveManager_->writeHomingMethod(jointName, 0);
 
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
@@ -100,7 +137,17 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   jointStatesPublisher_.publish(extendedJointStates);
   deviceStatePublisher_.publish(extendedDeviceStates);
 
- /* varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
+  /*if(extendedDeviceStates.device_state[0].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+    eposEthercatSlaveManager_->setHomingState("knee_right", HomingState::HOMING_IN_PROGRESS);
+  } else {
+    MELO_INFO_STREAM(": Enabling Drive");
+    varileg_msgs::DeviceState deviceState;
+    deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
+
+    eposEthercatSlaveManager_->setDeviceState("knee_right", deviceState);
+  }*/
+
+  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
 
   MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
 
@@ -110,7 +157,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 
     MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i] << " PrimaryPosition: " << extendedJointStates.primary_position[i] << " SecondaryPosition: " << extendedJointStates.secondary_position[i] << " diff: " << (extendedJointStates.primary_position[i] - extendedJointStates.secondary_position[i]));
     if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
-      extendedJointTrajectories.name.push_back(name);
+      /*extendedJointTrajectories.name.push_back(name);
 
       double position = 0;
       if(goUp) {
@@ -129,7 +176,8 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 
       extendedJointTrajectories.position.push_back(position);
 
-      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);
+      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);*/
+
     } else {
       MELO_INFO_STREAM(name << ": Enabling Drive");
       varileg_msgs::DeviceState deviceState;
@@ -139,7 +187,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
     }
   }
 
-  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);*/
+  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
 
   eposEthercatSlaveManager_->writeAllOutboxes();
 
