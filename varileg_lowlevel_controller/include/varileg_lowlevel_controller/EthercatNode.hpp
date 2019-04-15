@@ -24,11 +24,17 @@ class EthercatNode : public any_node::Node {
       : any_node::Node(nh),
         busManager_(std::make_shared<VarilegEthercatBusManager>()),
         eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()),
-        homingActionServer_(*nh, "Homing" , boost::bind(&EthercatNode::homingCallback, this, _1),false),
+        homingActionServerHipRight_(*nh_, "homing/hip_right" , boost::bind(&EthercatNode::homingCallbackHipRight, this, _1),false),
+        homingActionServerHipLeft_(*nh_, "homing/hip_left" , boost::bind(&EthercatNode::homingCallbackHipLeft, this, _1),false),
+        homingActionServerKneeRight_(*nh_, "homing/knee_right" , boost::bind(&EthercatNode::homingCallbackKneeRight, this, _1),false),
+        homingActionServerKneeLeft_(*nh_, "homing/knee_left" , boost::bind(&EthercatNode::homingCallbackKneeLeft, this, _1),false),
         isStopped(false)
         {
     //Action Server
-    homingActionServer_.start();
+          homingActionServerHipRight_.start();
+          homingActionServerHipLeft_.start();
+          homingActionServerKneeRight_.start();
+          homingActionServerKneeLeft_.start();
   }
 
   ~EthercatNode() override {
@@ -47,7 +53,11 @@ class EthercatNode : public any_node::Node {
   void jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg);
 
   //Action Server
-  void homingCallback(const varileg_msgs::HomingGoalConstPtr &goal);
+  void homingCallback(actionlib::SimpleActionServer<varileg_msgs::HomingAction> &homingActionServer, const std::string &name, const varileg_msgs::HomingGoalConstPtr &goal);
+  void homingCallbackHipRight (const varileg_msgs::HomingGoalConstPtr &goal);
+  void homingCallbackHipLeft (const varileg_msgs::HomingGoalConstPtr &goal);
+  void homingCallbackKneeRight (const varileg_msgs::HomingGoalConstPtr &goal);
+  void homingCallbackKneeLeft (const varileg_msgs::HomingGoalConstPtr &goal);
 
   // Service
   bool setOperatingModeCallback(varileg_msgs::SetOperatingModeRequest& request, varileg_msgs::SetOperatingModeResponse& response);
@@ -70,7 +80,10 @@ class EthercatNode : public any_node::Node {
   ros::ServiceServer operatingModeServiceServer_;
 
   //Action Servers
-  actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServer_;
+  actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerHipRight_;
+  actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerHipLeft_;
+  actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeRight_;
+  actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeLeft_;
 
   void setupBusManager();
 };
