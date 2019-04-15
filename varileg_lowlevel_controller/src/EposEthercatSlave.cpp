@@ -33,11 +33,11 @@ bool EposEthercatSlave::startup() {
     return false;
   }
 
-  if (!writeOperatingMode(OperatingMode::CSP)) {
+/*  if (!setOperatingMode(OperatingMode::CSP)) {
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
     return false;
   }
-
+*/
   isStartedUp_ = true;
 
   return true;
@@ -49,8 +49,9 @@ void EposEthercatSlave::readInbox() {
   TxPdo txPdo;
   bus_->readTxPdo(address_, txPdo);
   receiveDeviceState_ = EposCommandLibrary::EposDeviceState::toDeviceState(txPdo.statusWord);
+  receiveOperatingMode_ = EposCommandLibrary::EposOperatingMode::toOperatingMode(txPdo.operatingMode);
 
-  switch (currentOperatingMode_) {
+  switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
       receiveJointState_.position = primaryEncoderConverter_.toRad(txPdo.positionActualValue);
       receiveJointState_.primaryPosition = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder);
@@ -71,14 +72,7 @@ void EposEthercatSlave::readInbox() {
       break;
     }
     case OperatingMode::HMM: {
-      HomingState newHomingState = EposCommandLibrary::EposHomingState::toHomingState(txPdo.statusWord);
-
-      // Only if state has changed compared to last cycle
-      if(newHomingState != receiveHomingState_ && newHomingState == HomingState::HOMING_SUCCESSFUL) {
-        // TODO: set new mile home position
-      }
-
-      receiveHomingState_ = newHomingState;
+      receiveHomingState_ = EposCommandLibrary::EposHomingState::toHomingState(txPdo.statusWord);
       break;
     }
   }
@@ -88,6 +82,8 @@ void EposEthercatSlave::writeOutbox() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   RxPdo rxPdo;
+
+  rxPdo.operatingMode = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(sendOperatingMode_);
 
   uint16_t controlWord = 0;
 /*  if(!encoderCrosschecker_.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition) && receiveDeviceState_ == DeviceState::STATE_OP_ENABLED) {
@@ -102,9 +98,7 @@ void EposEthercatSlave::writeOutbox() {
     }*/
  // }
 
-  rxPdo.mode = 0x06;
-
-  switch (readOperatingMode()) {
+  switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
       MELO_INFO_STREAM("Current Mode is CSP.");
       MELO_INFO_STREAM("sendJointTraj.pos: " << sendJointTrajectory_.position);
@@ -114,11 +108,10 @@ void EposEthercatSlave::writeOutbox() {
     }
     case OperatingMode::HMM: {
       MELO_INFO_STREAM("Current Mode is HMM.");
-      /*rxPdo.targetPosition = 0;
-      //applyNextHomingStateTransition(controlWord, sendHomingState_);*/
-      if(receiveDeviceState_ == DeviceState::STATE_OP_ENABLED ) {
+      applyNextHomingStateTransition(controlWord, sendHomingState_);
+   /*   if(receiveDeviceState_ == DeviceState::STATE_OP_ENABLED ) {
         controlWord = 0x001F;
-      }
+      }*/
       break;
     }
   }
@@ -190,9 +183,7 @@ OperatingMode EposEthercatSlave::readOperatingMode() {
 
   readSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY, mode, false);
 
-  currentOperatingMode_ = EposCommandLibrary::EposOperatingMode::toOperatingMode(mode);
-
-  return currentOperatingMode_;
+  return EposCommandLibrary::EposOperatingMode::toOperatingMode(mode);
 }
 
 uint8_t EposEthercatSlave::readNodeId() {
@@ -385,10 +376,11 @@ const JointState EposEthercatSlave::getReceiveJointState() const {
 
   return receiveJointState_;
 }
-OperatingMode EposEthercatSlave::getCurrentOperatingMode() const {
+
+OperatingMode EposEthercatSlave::getReceiveOperatingMode() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  return currentOperatingMode_;
+  return receiveOperatingMode_;
 }
 
 void EposEthercatSlave::setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter) {
@@ -410,7 +402,15 @@ const bool EposEthercatSlave::isDeviceStateReachable() const {
 }
 
 void EposEthercatSlave::setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
   encoderCrosschecker_ = encoderCrosschecker;
+}
+
+void EposEthercatSlave::setSendOperatingMode(OperatingMode sendOperatingMode) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  EposEthercatSlave::sendOperatingMode_ = sendOperatingMode;
 }
 
 }

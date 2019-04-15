@@ -81,7 +81,7 @@ varileg_msgs::ExtendedDeviceStates EposEthercatSlaveManager::getExtendedDeviceSt
     extendedDeviceStates.device_state.push_back(deviceStateRos);
 
     varileg_msgs::OperatingMode operatingModeRos =
-        ConversionTraits<OperatingMode, varileg_msgs::OperatingMode>::convert(eposEthercatSlavePtr->getCurrentOperatingMode());
+        ConversionTraits<OperatingMode, varileg_msgs::OperatingMode>::convert(eposEthercatSlavePtr->getReceiveOperatingMode());
     extendedDeviceStates.operating_mode.push_back(operatingModeRos);
   }
 
@@ -250,17 +250,17 @@ bool EposEthercatSlaveManager::writeSetup(const std::string &name, const EposCon
   return eposEthercatSlavePtr->writeSetup(eposConfig);
 }
 
-bool EposEthercatSlaveManager::writeOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos) {
+void EposEthercatSlaveManager::setOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
   if (!eposEthercatSlavePtr) {
     MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
-    return false;
+    return;
   }
 
   OperatingMode operatingMode = ConversionTraits<OperatingMode, varileg_msgs::OperatingMode>::convert(operatingModeRos);
-  return eposEthercatSlavePtr->writeOperatingMode(operatingMode);
+  eposEthercatSlavePtr->setSendOperatingMode(operatingMode);
 }
 
 bool EposEthercatSlaveManager::writeHomingMethod(const std::string &name, const varileg_msgs::HomingGoal::_mode_type &homingMode) {

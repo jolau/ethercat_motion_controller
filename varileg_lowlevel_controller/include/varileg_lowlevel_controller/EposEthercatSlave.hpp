@@ -42,11 +42,12 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
   void setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker);
+  void setSendOperatingMode(OperatingMode sendOperatingMode);
 
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
   const DeviceState getReceiveDeviceState() const;
-  OperatingMode getCurrentOperatingMode() const;
+  OperatingMode getReceiveOperatingMode() const;
 
   bool startup() override;
   void readInbox();
@@ -81,7 +82,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   PositionUnitConverter secondaryEncoderConverter_ = {1};
   EncoderCrosschecker encoderCrosschecker_;
 
-  OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
+  OperatingMode sendOperatingMode_ = OperatingMode::CSP;
+  OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
 
   JointState receiveJointState_ {0, 0, 0, 0, 0};
   JointTrajectory sendJointTrajectory_ {0, 0, 0};
