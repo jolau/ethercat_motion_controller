@@ -194,10 +194,9 @@ bool EthercatNode::setDeviceStateCallback(varileg_msgs::SetDeviceStateRequest &r
 }
 
 //Action Server
-void EthercatNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
+void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::HomingAction> &homingActionServer, const std::string &name, const varileg_msgs::HomingGoalConstPtr &goal)
 {
   MELO_INFO_STREAM("Received homingCallback Action Goal: " << static_cast<int>(goal->mode));
-  const std::string jointName = "knee_right";
 
   bool success = true;
   varileg_msgs::DeviceState deviceState;
@@ -205,51 +204,67 @@ void EthercatNode::homingCallback(const varileg_msgs::HomingGoalConstPtr &goal)
   ros::Rate rate(50);
 
   varileg_msgs::HomingResult homingResult;
-  if(eposEthercatSlaveManager_->getDeviceState(jointName).state != varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+  if(eposEthercatSlaveManager_->getDeviceState(name).state != varileg_msgs::DeviceState::STATE_OP_ENABLED) {
     homingResult.success = false;
     homingResult.message = "Wrong Device State";
-    homingActionServer_.setSucceeded(homingResult);
+    homingActionServer.setSucceeded(homingResult);
     return;
   }
 
-  if(eposEthercatSlaveManager_->getOperatingMode(jointName) != OperatingMode::HMM) {
+  if(eposEthercatSlaveManager_->getOperatingMode(name) != OperatingMode::HMM) {
     homingResult.success = false;
     homingResult.message = "Wrong Operating Mode";
-    homingActionServer_.setSucceeded(homingResult);
+    homingActionServer.setSucceeded(homingResult);
     return;
   }
 
-  eposEthercatSlaveManager_->writeHomingMethod(jointName, goal->mode);
+  eposEthercatSlaveManager_->writeHomingMethod(name, goal->mode);
 
   rate.sleep();
 
-  eposEthercatSlaveManager_->setHomingState(jointName, HomingState::HOMING_IN_PROGRESS);
+  eposEthercatSlaveManager_->setHomingState(name, HomingState::HOMING_IN_PROGRESS);
 
   varileg_msgs::HomingFeedback homingFeedback;
 
   HomingState currentHomingState;
   do {
-    if(homingActionServer_.isPreemptRequested() || isStopped) {
-      MELO_INFO_STREAM(jointName << "'s Homing Action: Preempted");
-      homingActionServer_.setPreempted();
+    if(homingActionServer.isPreemptRequested() || isStopped) {
+      MELO_INFO_STREAM(name << "'s Homing Action: Preempted");
+      homingActionServer.setPreempted();
       success = false;
       break;
     }
-    currentHomingState = eposEthercatSlaveManager_->getHomingState(jointName);
+    currentHomingState = eposEthercatSlaveManager_->getHomingState(name);
 
     homingFeedback.interrupted = (currentHomingState == HomingState::HOMING_INTERRUPTED);
-    homingActionServer_.publishFeedback(homingFeedback);
+    homingActionServer.publishFeedback(homingFeedback);
 
     rate.sleep();
   } while(currentHomingState != HomingState::HOMING_SUCCESSFUL && currentHomingState != HomingState::HOMING_ERROR && !isStopped);
 
-  eposEthercatSlaveManager_->setHomingState(jointName, HomingState::HOMING_INTERRUPTED);
+  eposEthercatSlaveManager_->setHomingState(name, HomingState::HOMING_INTERRUPTED);
 
   if(success) {
     homingResult.success = (currentHomingState == HomingState::HOMING_SUCCESSFUL);
     homingResult.message = Enum::toString(currentHomingState);
-    homingActionServer_.setSucceeded(homingResult);
+    homingActionServer.setSucceeded(homingResult);
   }
+}
+
+void EthercatNode::homingCallbackHipRight(const varileg_msgs::HomingGoalConstPtr &goal) {
+  homingCallback(homingActionServerHipRight_, "hip_right", goal);
+}
+
+void EthercatNode::homingCallbackHipLeft(const varileg_msgs::HomingGoalConstPtr &goal) {
+  homingCallback(homingActionServerHipLeft_, "hip_left", goal);
+}
+
+void EthercatNode::homingCallbackKneeRight(const varileg_msgs::HomingGoalConstPtr &goal) {
+  homingCallback(homingActionServerKneeRight_, "knee_right", goal);
+}
+
+void EthercatNode::homingCallbackKneeLeft(const varileg_msgs::HomingGoalConstPtr &goal) {
+  homingCallback(homingActionServerKneeLeft_, "knee_left", goal);
 }
 
 void EthercatNode::preCleanup() {
