@@ -62,21 +62,22 @@ bool EthercatNode::init() {
 }
 
 void EthercatNode::setupBusManager() {
-  std::string leftBusName = param<std::string>("left_bus_name", "ens9");
-  std::string rightBusName = param<std::string>("right_bus_name", "eth1");
+  std::string leftBusName = param<std::string>("left_bus_name", "enp3s0");
+  std::string rightBusName = param<std::string>("right_bus_name", "enp5s0");
+  MELO_INFO_STREAM("after param; left bus name: " << leftBusName);
 
   soem_interface::EthercatBusBasePtr leftBus = std::make_shared<soem_interface::EthercatBusBase>(leftBusName);
   busManager_->addEthercatBus(leftBus);
 
   std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves;
   leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
-  //leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
+  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
- /* soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
+/*  soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
   busManager_->addEthercatBus(rightBus);
 
-  std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves(2);
+  std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves;
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
   //rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));*/
@@ -115,9 +116,9 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
     eposEthercatSlaveManager_->setDeviceState("knee_right", deviceState);
   }*/
 
-  varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
+ // varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
 
-  MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
+ // MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
 
 //  for (int i = 0; i < extendedJointStates.name.size(); ++i) {
 //    std::string name = extendedJointStates.name[i];
@@ -155,7 +156,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 //    }
 //  }
 
-  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
+//  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
 
   eposEthercatSlaveManager_->writeAllOutboxes();
 

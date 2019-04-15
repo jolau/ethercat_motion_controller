@@ -47,3 +47,5 @@ qtcreator-*
 CATKIN_IGNORE
 
 .idea
+
+varileg_lowlevel_controller/launch/varileg_lowlevel_controller_setcap\.launch

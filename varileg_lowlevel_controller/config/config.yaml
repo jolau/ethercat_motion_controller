@@ -1,16 +1,12 @@
 epos_mapping:
   hip_left: 1
   hip_right: 2
-  knee_left: 4
+  knee_left: 5
   knee_right: 3
-left_bus_name: ens9
-right_bus_name: ens8
-publishers:
-  my_publisher_name:
-    topic: /my_publisher_topic
-    queue_size: 1
-    latch: false
 
+left_bus_name: enp5s0
+right_bus_name: enp2s0
+publishers:
   joint_state:
     topic: /joint_state
     queue_size: 1
