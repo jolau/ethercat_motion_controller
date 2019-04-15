@@ -14,6 +14,8 @@
 #include "actionlib/server/simple_action_server.h"
 #include "varileg_msgs/DeviceStateAction.h"
 #include "varileg_msgs/HomingAction.h"
+#include "varileg_msgs/SetOperatingMode.h"
+#include "varileg_msgs/SetDeviceState.h"
 
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
@@ -24,7 +26,8 @@ class EthercatNode : public any_node::Node {
         busManager_(std::make_shared<VarilegEthercatBusManager>()),
         eposEthercatSlaveManager_(std::make_shared<EposEthercatSlaveManager>()),
         deviceStateActionServer_(*nh, "DeviceState", boost::bind (&EthercatNode::deviceStateCallback, this, _1),false),
-        homingActionServer_(*nh, "Homing" , boost::bind(&EthercatNode::homingCallback, this, _1),false)
+        homingActionServer_(*nh, "Homing" , boost::bind(&EthercatNode::homingCallback, this, _1),false),
+        isStopped(false)
         {
     //Action Server
     deviceStateActionServer_.start();
@@ -50,16 +53,25 @@ class EthercatNode : public any_node::Node {
   void deviceStateCallback(const varileg_msgs::DeviceStateGoalConstPtr &goal);
   void homingCallback(const varileg_msgs::HomingGoalConstPtr &goal);
 
+  // Service
+  bool setOperatingModeCallback(varileg_msgs::SetOperatingModeRequest& request, varileg_msgs::SetOperatingModeResponse& response);
+  bool setDeviceStateCallback(varileg_msgs::SetDeviceStateRequest& request, varileg_msgs::SetDeviceStateResponse& response);
+
  private:
   VarilegEthercatBusManagerPtr busManager_;
   std::map<std::string, std::vector<soem_interface::EthercatSlaveBasePtr>> slavesOfBusesMap_;
   EposEthercatSlaveManagerPtr eposEthercatSlaveManager_;
   bool goUp = true;
+  std::atomic_bool isStopped;
 
   //Publisher and subscribers
   ros::Subscriber jointTrajectoriesSubscriber_;
   ros::Publisher jointStatesPublisher_;
   ros::Publisher deviceStatePublisher_;
+
+  // Sevices
+  ros::ServiceServer deviceStateServiceServer_;
+  ros::ServiceServer operatingModeServiceServer_;
 
   //Action Servers
   actionlib::SimpleActionServer <varileg_msgs::DeviceStateAction>  deviceStateActionServer_;
