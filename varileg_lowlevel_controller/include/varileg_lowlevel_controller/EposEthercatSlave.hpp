@@ -10,13 +10,13 @@
 #include <soem_interface/EthercatSlaveBase.hpp>
 #include <varileg_lowlevel_controller/entities/JointState.hpp>
 #include <varileg_lowlevel_controller/entities/JointTrajectory.hpp>
+#include <varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp>
 #include "varileg_lowlevel_controller/entities/RxPdo.hpp"
 #include "varileg_lowlevel_controller/entities/TxPdo.hpp"
 #include "EposCommandLibrary.hpp"
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 #include "varileg_lowlevel_controller/entities/EposConfig.hpp"
-#include "boost/logic/tribool.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -34,18 +34,20 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   * @return
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
+  const bool isDeviceStateReachable() const;
 
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
   void setSendDeviceState(DeviceState sendDeviceState);
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
+  void setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker);
+  void setSendOperatingMode(OperatingMode sendOperatingMode);
 
-  const boost::tribool &isDeviceStateReachable() const;
   const JointState getReceiveJointState() const;
   const HomingState getReceiveHomingState() const;
   const DeviceState getReceiveDeviceState() const;
-  OperatingMode getCurrentOperatingMode() const;
+  OperatingMode getReceiveOperatingMode() const;
 
   bool startup() override;
   void readInbox();
@@ -78,22 +80,24 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   PdoInfo pdoInfo_;
   PositionUnitConverter primaryEncoderConverter_ = {1};
   PositionUnitConverter secondaryEncoderConverter_ = {1};
+  EncoderCrosschecker encoderCrosschecker_;
 
-  OperatingMode currentOperatingMode_ = OperatingMode::UNKNOWN;
+  OperatingMode sendOperatingMode_ = OperatingMode::CSP;
+  OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
 
-  JointState receiveJointState_;
-  JointTrajectory sendJointTrajectory_;
+  JointState receiveJointState_ {0, 0, 0, 0, 0};
+  JointTrajectory sendJointTrajectory_ {0, 0, 0};
 
-  HomingState sendHomingState_;
-  HomingState receiveHomingState_;
+  HomingState sendHomingState_ = HomingState::UNKNOWN;
+  HomingState receiveHomingState_ = HomingState::UNKNOWN;
 
-  DeviceState sendDeviceState_;
-  DeviceState receiveDeviceState_;
+  DeviceState sendDeviceState_ = DeviceState::STATE_UNKNOWN;
+  DeviceState receiveDeviceState_ = DeviceState::STATE_UNKNOWN;
 
   // Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
 
-  boost::logic::tribool isDeviceStateReachable_ {boost::indeterminate};
+  bool isDeviceStateReachable_ {true};
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;

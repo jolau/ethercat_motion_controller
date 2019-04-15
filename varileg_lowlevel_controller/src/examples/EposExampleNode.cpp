@@ -12,7 +12,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   constexpr int priority = 10;
 
   std::map<std::string, int> joint2eposMap;
-  joint2eposMap.insert(std::make_pair("hip_left", 4));
+  joint2eposMap.insert(std::make_pair("hip_left", 3));
  // joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
@@ -36,7 +36,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };
 
-  eposEthercatSlaveManager_->setEncoderConverters("hip_left", {3983.96653}, {-346321.156});
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {3983.96653}, {-346321.156}, EncoderCrosschecker());
 
  /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
     MELO_ERROR("Could add epos two to manager.")

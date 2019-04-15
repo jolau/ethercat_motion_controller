@@ -1,7 +1,38 @@
 epos_mapping:
   hip_left: 1
   hip_right: 2
-  knee_left: 3
-  knee_right: 4
+  knee_left: 4
+  knee_right: 3
 left_bus_name: ens9
 right_bus_name: ens8
+publishers:
+  my_publisher_name:
+    topic: /my_publisher_topic
+    queue_size: 1
+    latch: false
+
+  joint_state:
+    topic: /joint_state
+    queue_size: 1
+    latch: false
+
+  device_state:
+    topic: /device_state
+    queue_size: 1
+    latch: false
+
+  joint_trajectory_pub:
+    topic: /joint_trajectory
+    queue_size: 1
+    latch: false
+
+subscribers:
+  my_subscriber_name:
+    topic: /my_subscriber_topic
+    queue_size: 1
+    latch: false
+
+  joint_trajectory:
+    topic: /joint_trajectory
+    queue_size: 1
+    latch: false

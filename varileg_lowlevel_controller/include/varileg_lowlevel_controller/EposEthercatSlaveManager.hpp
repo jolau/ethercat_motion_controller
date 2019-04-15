@@ -24,16 +24,22 @@ class EposEthercatSlaveManager {
 
   varileg_msgs::ExtendedDeviceStates getExtendedDeviceStates();
   varileg_msgs::ExtendedJointStates getExtendedJointStates();
-
-  const boost::tribool isDeviceStateReachable(const std::string &name) const;
   varileg_msgs::DeviceState getDeviceState(const std::string &name);
+  HomingState getHomingState(const std::string &name);
+  OperatingMode getOperatingMode(const std::string &name);
+
+  const bool isDeviceStateReachable(const std::string &name) const;
 
   void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
   void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
-  void setEncoderConverters(const std::string& name, PositionUnitConverter primaryEncoderConverter, PositionUnitConverter secondaryEncoderConverter);
+  void setEncoderConfig(const std::string &name,
+                        PositionUnitConverter primaryEncoderConverter,
+                        PositionUnitConverter secondaryEncoderConverter,
+                        EncoderCrosschecker encoderCrosschecker);
+  void setHomingState(const std::string &name, const HomingState &homingState);
+  void setOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos);
 
   bool writeSetup(const std::string& name, const EposConfig eposConfig);
-  bool writeOperatingMode(const std::string& name, const varileg_msgs::OperatingMode &operatingModeRos);
   bool writeHomingMethod(const std::string& name, const varileg_msgs::HomingGoal::_mode_type &homingMode);
   bool writeAllInterpolationTimePeriod(uint8_t timePeriod);
 
