@@ -1,9 +1,5 @@
 publishers:
-  my_publisher_name:
-    topic: /my_publisher_topic
-    queue_size: 1
-    latch: false
-  
+    
   joint_state:
     topic: /joint_states
     queue_size: 1
@@ -20,11 +16,7 @@ publishers:
     latch: false
   
 subscribers:
-  my_subscriber_name:
-    topic: /my_subscriber_topic
-    queue_size: 1
-    latch: false
-  
+    
   joint_trajectory:
     topic: /joint_trajectories
     queue_size: 1
