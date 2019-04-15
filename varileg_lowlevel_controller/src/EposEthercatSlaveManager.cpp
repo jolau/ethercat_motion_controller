@@ -170,6 +170,18 @@ HomingState EposEthercatSlaveManager::getHomingState(const std::string &name) {
   return eposEthercatSlavePtr->getReceiveHomingState();
 }
 
+OperatingMode EposEthercatSlaveManager::getOperatingMode(const std::string &name) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
+  if (!eposEthercatSlavePtr) {
+    MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
+    return OperatingMode::UNKNOWN;
+  }
+
+  return eposEthercatSlavePtr->getReceiveOperatingMode();
+}
+
 void EposEthercatSlaveManager::setHomingState(const std::string &name, const HomingState &homingState) {
   std::lock_guard<std::mutex> lock(mutex_);
 
