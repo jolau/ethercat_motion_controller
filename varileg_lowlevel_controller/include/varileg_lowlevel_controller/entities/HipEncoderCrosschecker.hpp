@@ -9,10 +9,11 @@
 
 class HipEncoderCrosschecker : public EncoderCrosschecker {
  public:
-  HipEncoderCrosschecker(double errorMargin) : errorMargin(errorMargin) {}
+  HipEncoderCrosschecker(double errorMargin) : errorMargin_(errorMargin) {
+  }
   virtual bool check(double primaryPosition, double secondaryPosition) override;
  private:
-  double errorMargin;
+  double errorMargin_;
 };
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_HIPENCODERCROSSCHECKER_HPP

@@ -78,8 +78,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   const std::string name_;
   PdoInfo pdoInfo_;
-  PositionUnitConverter primaryEncoderConverter_ = {1};
-  PositionUnitConverter secondaryEncoderConverter_ = {1};
+  PositionUnitConverter primaryEncoderConverter_ {1};
+  PositionUnitConverter secondaryEncoderConverter_ {1};
   EncoderCrosschecker encoderCrosschecker_;
 
   OperatingMode sendOperatingMode_ = OperatingMode::CSP;

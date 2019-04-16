@@ -15,6 +15,11 @@ class PositionUnitConverter {
   int toInc(const double &rad) {
     return rad * conversionFactor_;
   };
+
+  double getConversionFactor(){
+    return conversionFactor_;
+  }
+
  private:
   double conversionFactor_;
 };

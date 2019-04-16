@@ -40,10 +40,24 @@ EposEthercatSlavePtr EposEthercatSlaveManager::getEposEthercatSlave(const std::s
   return it->second;
 }
 
+double EposEthercatSlaveManager::getJointOffset(const std::string &name) const {
+  const auto &it = jointOffsetMap_.find(name);
+  if (it == jointOffsetMap_.end()) {
+    return 0;
+  }
+  return it->second;
+}
+
 void EposEthercatSlaveManager::setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   jointName2NodeIdMap_ = jointName2NodeIdMap;
+}
+
+void EposEthercatSlaveManager::setJointOffsetMap(const std::map<std::string, double> &jointOffsetMap) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  jointOffsetMap_ = jointOffsetMap;
 }
 
 void EposEthercatSlaveManager::writeAllOutboxes() {
@@ -106,12 +120,16 @@ varileg_msgs::ExtendedJointStates EposEthercatSlaveManager::getExtendedJointStat
  // resizeExtendedJointStates(extendedJointStates, eposEthercatSlaves_.size());
 
   for (const auto &it : eposEthercatSlaves_) {
+    std::string name = it.first;
     EposEthercatSlavePtr eposEthercatSlavePtr = it.second;
-    MELO_INFO_STREAM("slave: " << it.first);
-    extendedJointStates.name.push_back(it.first);
+    
+    double offset = getJointOffset(name);
+
+    MELO_INFO_STREAM("slave: " << name);
+    extendedJointStates.name.push_back(name);
 
     JointState jointState = eposEthercatSlavePtr->getReceiveJointState();
-    extendedJointStates.position.push_back(jointState.position);
+    extendedJointStates.position.push_back(jointState.position + offset);
     extendedJointStates.primary_position.push_back(jointState.primaryPosition);
     extendedJointStates.secondary_position.push_back(jointState.secondaryPosition);
     extendedJointStates.velocity.push_back(jointState.velocity);
@@ -142,18 +160,20 @@ void EposEthercatSlaveManager::setExtendedJointTrajectories(const varileg_msgs::
   assert(nameSize == extendedJointTrajectories.position.size());
 
   for (int i = 0; i < nameSize; ++i) {
-    EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(extendedJointTrajectories.name[i]);
-    MELO_INFO_STREAM(extendedJointTrajectories.name[i]);
+    std::string name = extendedJointTrajectories.name[i];
+    EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
+    MELO_INFO_STREAM(name);
     if (!eposEthercatSlavePtr) {
-      MELO_ERROR_STREAM("Epos Slave with name " << extendedJointTrajectories.name[i] << " does not exist!")
+      MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
       // TODO: change back!
       continue;//return;
     }
+    double offset = getJointOffset(name);
 
     MELO_INFO_STREAM("position: " << extendedJointTrajectories.position.size());
 
     JointTrajectory jointTrajectory;
-    jointTrajectory.position = extendedJointTrajectories.position[i];
+    jointTrajectory.position = extendedJointTrajectories.position[i] - offset;
     eposEthercatSlavePtr->setSendJointTrajectory(jointTrajectory);
   }
 }
@@ -248,6 +268,7 @@ void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
   eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
   eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
   eposEthercatSlavePtr->setEncoderCrosschecker(encoderCrosschecker);
+  MELO_INFO_STREAM("Slave: " << name << " primary converter: " << primaryEncoderConverter.getConversionFactor() << " secondary converter: " << secondaryEncoderConverter.getConversionFactor());
 }
 
 bool EposEthercatSlaveManager::writeSetup(const std::string &name, const EposConfig eposConfig) {

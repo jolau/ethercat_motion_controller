@@ -1,9 +1,11 @@
 //
-// Created by jolau on 13.04.19.
+// Created by wertlin on 16.04.19.
 //
 
 #include "varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp"
+#include <cmath>
 
 bool HipEncoderCrosschecker::check(double primaryPosition, double secondaryPosition) {
-  return true;
+  if(std::abs((double) primaryPosition - secondaryPosition) < errorMargin_)return true;
+  else return false;
 }

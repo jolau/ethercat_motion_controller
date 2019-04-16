@@ -7,6 +7,7 @@
   <!--launch-prefix="$(arg launch_prefix)"-->
   <node name="varileg_lowlevel_controller" pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_node"  output="screen" >
     <rosparam command="load" file="$(find varileg_lowlevel_controller)/config/config.yaml" />
+    <rosparam command="load" file="$(find varileg_lowlevel_controller)/config/joint_config.yaml" />
     <param name="time_step" type="double" value="$(arg time_step)"/>
   </node>
 </launch>
