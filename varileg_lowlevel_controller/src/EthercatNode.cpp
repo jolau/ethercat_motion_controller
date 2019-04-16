@@ -27,7 +27,14 @@ bool EthercatNode::init() {
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
 
   for (auto &pair : jointName2NodeIdMap) {
-    MELO_INFO_STREAM("key: " << pair.first << " value: " << pair.second)
+    MELO_INFO_STREAM("NodeIDMap key: " << pair.first << " value: " << pair.second)
+  }
+
+  auto jointOffsetMap = param<std::map<std::string, double>>("offset_mapping", {});
+  eposEthercatSlaveManager_->setJointOffsetMap(jointOffsetMap);
+
+  for (auto &pair : jointOffsetMap) {
+    MELO_INFO_STREAM("OffsetMap key: " << pair.first << " value: " << pair.second)
   }
 
   setupBusManager();
@@ -52,8 +59,22 @@ bool EthercatNode::init() {
   int interpolationTimePeriod = workerTimeStep * 1000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(0);
 
-  EncoderCrosschecker encoderCrosschecker = HipEncoderCrosschecker(0);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {3983.96653}, {-346321.156}, encoderCrosschecker);
+  EncoderCrosschecker encoderCrosschecker = HipEncoderCrosschecker(10);
+  double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
+  double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
+  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, encoderCrosschecker);
+
+  double hip_left_primary_conversion_factor = param<double>("hip_left/primary_conversion_factor", 1);
+  double hip_left_secondary_conversion_factor = param<double>("hip_left/secondary_conversion_factor", 1);
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {hip_left_primary_conversion_factor}, {hip_left_secondary_conversion_factor}, encoderCrosschecker);
+
+  double knee_right_primary_conversion_factor = param<double>("knee_right/primary_conversion_factor", 1);
+  double knee_right_secondary_conversion_factor = param<double>("knee_right/secondary_conversion_factor", 1);
+  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor}, encoderCrosschecker);
+
+  double hip_right_primary_conversion_factor = param<double>("hip_right/primary_conversion_factor", 1);
+  double hip_right_secondary_conversion_factor = param<double>("hip_right/secondary_conversion_factor", 1);
+  eposEthercatSlaveManager_->setEncoderConfig("hip_right", {hip_right_primary_conversion_factor}, {hip_right_secondary_conversion_factor}, encoderCrosschecker);
 
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
@@ -63,7 +84,7 @@ bool EthercatNode::init() {
 
 void EthercatNode::setupBusManager() {
   std::string leftBusName = param<std::string>("left_bus_name", "enp3s0");
-  std::string rightBusName = param<std::string>("right_bus_name", "enp5s0");
+  //std::string rightBusName = param<std::string>("right_bus_name", "enp5s0");
   MELO_INFO_STREAM("after param; left bus name: " << leftBusName);
 
   soem_interface::EthercatBusBasePtr leftBus = std::make_shared<soem_interface::EthercatBusBase>(leftBusName);
@@ -71,16 +92,18 @@ void EthercatNode::setupBusManager() {
 
   std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves;
   leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
-  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
+  //leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
-/*  soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
+/*
+  soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
   busManager_->addEthercatBus(rightBus);
 
   std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves;
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
-  //rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
-  slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));*/
+  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
+  slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
+  */
 }
 
 void EthercatNode::cleanup() {
@@ -240,7 +263,7 @@ void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::Ho
     homingActionServer.publishFeedback(homingFeedback);
 
     rate.sleep();
-  } while(currentHomingState != HomingState::HOMING_SUCCESSFUL && currentHomingState != HomingState::HOMING_ERROR && !isStopped);
+  } while(currentHomingState != HomingState::HOMING_SUCCESSFUL && currentHomingState != HomingState::HOMING_ERROR);
 
   eposEthercatSlaveManager_->setHomingState(name, HomingState::HOMING_INTERRUPTED);
 

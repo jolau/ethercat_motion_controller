@@ -65,7 +65,7 @@ add_library(${PROJECT_NAME}
   include/varileg_lowlevel_controller/ConversionTraits.hpp
   include/varileg_lowlevel_controller/EposConfigSetup.hpp
   include/varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp
-  src/HipEncoderCrosscheck.cpp)
+  src/HipEncoderCrosschecker.cpp)
 
 
 target_link_libraries(${PROJECT_NAME}

@@ -1,0 +1,27 @@
+epos_mapping:
+  hip_left: 1
+  hip_right: 0
+  knee_left: 5
+  knee_right: 0
+
+offset_mapping:
+  hip_left: 0
+  hip_right: 0
+  knee_left: 1.693
+  knee_right: 0
+
+knee_left:
+  primary_conversion_factor: -6417.127
+  secondary_conversion_factor: 346321.156
+
+hip_left:
+  primary_conversion_factor: -4074.367
+  secondary_conversion_factor: -4074.367
+
+knee_right:
+  primary_conversion_factor: 6417.127
+  secondary_conversion_factor: -346321.156
+
+hip_right:
+  primary_conversion_factor: -4074.367
+  secondary_conversion_factor: -4074.367

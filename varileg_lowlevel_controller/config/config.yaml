@@ -1,11 +1,5 @@
-epos_mapping:
-  hip_left: 1
-  hip_right: 2
-  knee_left: 5
-  knee_right: 3
-
-left_bus_name: enp5s0
-right_bus_name: enp2s0
+left_bus_name: enp3s0
+right_bus_name: enp4s0
 publishers:
   joint_state:
     topic: /joint_state

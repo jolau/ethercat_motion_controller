@@ -44,14 +44,17 @@ class EposEthercatSlaveManager {
   bool writeAllInterpolationTimePeriod(uint8_t timePeriod);
 
   void setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap);
+  void setJointOffsetMap(const std::map<std::string, double> &jointOffsetMap);
  private:
   // Mutex prohibiting simultaneous access to EtherCAT slave manager.
   mutable std::mutex mutex_;
 
   std::map<std::string, EposEthercatSlavePtr> eposEthercatSlaves_;
   std::map<std::string, int> jointName2NodeIdMap_;
+  std::map<std::string, double> jointOffsetMap_;
 
   EposEthercatSlavePtr getEposEthercatSlave(const std::string &name) const;
+  double getJointOffset(const std::string &name) const;
   static void resizeExtendedJointStates(varileg_msgs::ExtendedJointStates &extendedJointStates, const unsigned long &size);
   static void resizeExtendedDeviceStates(varileg_msgs::ExtendedDeviceStates &extendedDeviceStates, const unsigned long &size);
 };
