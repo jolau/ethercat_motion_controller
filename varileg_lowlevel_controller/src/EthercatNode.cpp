@@ -1,4 +1,3 @@
-#include <varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp>
 #include "varileg_lowlevel_controller/EthercatNode.hpp"
 
 namespace varileg_lowlevel_controller {
