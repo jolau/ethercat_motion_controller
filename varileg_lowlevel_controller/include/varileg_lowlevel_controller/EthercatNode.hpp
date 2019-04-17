@@ -16,6 +16,11 @@
 #include "varileg_msgs/SetOperatingMode.h"
 #include "varileg_msgs/SetDeviceState.h"
 
+#include <varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp>
+#include <varileg_lowlevel_controller/entities/KneeEncoderCrosschecker.hpp>
+#include <varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp>
+
+
 namespace varileg_lowlevel_controller {
 class EthercatNode : public any_node::Node {
  public:
