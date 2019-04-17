@@ -86,8 +86,8 @@ void EposEthercatSlave::writeOutbox() {
   rxPdo.operatingMode = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(sendOperatingMode_);
 
   uint16_t controlWord = 0;
-  if(!encoderCrosschecker_.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
-    MELO_ERROR_STREAM("Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
+  if(!encoderCrosschecker_->check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
+    MELO_ERROR_STREAM(name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
     applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_QUICK_STOP_ACTIVE);
     // TODO write error
   } else {
@@ -402,10 +402,10 @@ const bool EposEthercatSlave::isDeviceStateReachable() const {
   return isDeviceStateReachable_;
 }
 
-void EposEthercatSlave::setEncoderCrosschecker(const EncoderCrosschecker &encoderCrosschecker) {
+void EposEthercatSlave::setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker> encoderCrosschecker) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-  encoderCrosschecker_ = encoderCrosschecker;
+  encoderCrosschecker_ = std::move(encoderCrosschecker);
 }
 
 void EposEthercatSlave::setSendOperatingMode(OperatingMode sendOperatingMode) {
