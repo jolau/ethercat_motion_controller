@@ -6,11 +6,11 @@ bool EthercatNode::init() {
   MELO_INFO("init called");
   constexpr unsigned int defaultQueueSize = 1;
   //Publisher
-  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_state","joint_state",1);
-  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_state","device_state",1);
+  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_states", "joint_states",1);
+  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_states","device_states",1);
 
   //Subscriber
-  jointTrajectoriesSubscriber_ = subscribe("joint_trajectory", "/joint_trajectory", defaultQueueSize,
+  jointTrajectoriesSubscriber_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize,
                                            &EthercatNode::jointTrajectoriesCallback, this);
 
 
