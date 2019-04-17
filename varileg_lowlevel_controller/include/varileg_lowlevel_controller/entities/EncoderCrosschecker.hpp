@@ -7,7 +7,7 @@
 
 class EncoderCrosschecker {
  public:
-  virtual bool check(double primaryPosition, double secondaryPosition) { return false; };
+  virtual bool check(double primaryPosition, double secondaryPosition) = 0;
 };
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_ENCODERCROSSCHECKER_HPP

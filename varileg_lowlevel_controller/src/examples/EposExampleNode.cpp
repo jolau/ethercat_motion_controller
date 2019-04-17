@@ -3,6 +3,7 @@
 //
 
 #include <varileg_lowlevel_controller/examples/EposExampleNode.hpp>
+#include <varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp>
 
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
@@ -36,7 +37,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };
 
-  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {3983.96653}, {-346321.156}, EncoderCrosschecker());
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {3983.96653}, {-346321.156}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)));
 
  /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
     MELO_ERROR("Could add epos two to manager.")
