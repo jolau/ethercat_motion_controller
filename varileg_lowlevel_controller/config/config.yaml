@@ -1,28 +1,30 @@
-left_bus_name: enp3s0
+left_bus_name: ens9
 right_bus_name: enp4s0
+
 publishers:
-  joint_state:
-    topic: /joint_state
+  joint_states:
+    topic: joint_states
     queue_size: 1
     latch: false
 
-  device_state:
-    topic: /device_state
+  device_states:
+    topic: device_states
     queue_size: 1
     latch: false
 
-  joint_trajectory_pub:
-    topic: /joint_trajectory
+  joint_trajectories:
+    topic: joint_trajectories
     queue_size: 1
     latch: false
 
 subscribers:
-  my_subscriber_name:
-    topic: /my_subscriber_topic
+  joint_trajectories:
+    topic: joint_trajectories
     queue_size: 1
     latch: false
 
-  joint_trajectory:
-    topic: /joint_trajectory
-    queue_size: 1
-    latch: false
+servers:
+  set_device_state:
+    service: set_device_state
+  set_operating_mode:
+    set_operating_mode: set_device_state
