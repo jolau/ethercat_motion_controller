@@ -13,15 +13,21 @@ offset_mapping:
 knee_left:
   primary_conversion_factor: -6417.127
   secondary_conversion_factor: 346321.156
+  crosscheck_margin_negativ: 1
+  crosscheck_margin_positiv: 1
 
 hip_left:
-  primary_conversion_factor: 3983.967
+  primary_conversion_factor: 4644.778
   secondary_conversion_factor: -346321.156
+  crosscheck_margin: 0.05
 
 knee_right:
   primary_conversion_factor: 6417.127
   secondary_conversion_factor: -346321.156
+  crosscheck_margin_negativ: 1
+  crosscheck_margin_positiv: 1
 
 hip_right:
   primary_conversion_factor: -3983.967
   secondary_conversion_factor: 346321.156
+  crosscheck_margin: 0.05
