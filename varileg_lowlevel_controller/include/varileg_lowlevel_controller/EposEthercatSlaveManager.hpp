@@ -35,7 +35,7 @@ class EposEthercatSlaveManager {
   void setEncoderConfig(const std::string &name,
                         PositionUnitConverter primaryEncoderConverter,
                         PositionUnitConverter secondaryEncoderConverter,
-                        EncoderCrosschecker encoderCrosschecker);
+                        std::unique_ptr<EncoderCrosschecker> encoderCrosschecker);
   void setHomingState(const std::string &name, const HomingState &homingState);
   void setOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos);
 

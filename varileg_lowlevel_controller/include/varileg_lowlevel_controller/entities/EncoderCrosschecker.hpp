@@ -9,7 +9,7 @@ namespace varileg_lowlevel_controller {
 
 class EncoderCrosschecker {
  public:
-  virtual bool check(double primaryPosition, double secondaryPosition) { return false; };
+  virtual bool check(double primaryPosition, double secondaryPosition) = 0;
 };
 
 }
