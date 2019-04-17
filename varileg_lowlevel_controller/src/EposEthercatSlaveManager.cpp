@@ -256,7 +256,7 @@ varileg_msgs::DeviceState EposEthercatSlaveManager::getDeviceState(const std::st
 void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
                                                 PositionUnitConverter primaryEncoderConverter,
                                                 PositionUnitConverter secondaryEncoderConverter,
-                                                EncoderCrosschecker encoderCrosschecker) {
+                                                std::unique_ptr<EncoderCrosschecker> encoderCrosschecker) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
@@ -267,7 +267,7 @@ void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
 
   eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
   eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
-  eposEthercatSlavePtr->setEncoderCrosschecker(encoderCrosschecker);
+  eposEthercatSlavePtr->setEncoderCrosschecker(std::move(encoderCrosschecker));
   MELO_INFO_STREAM("Slave: " << name << " primary converter: " << primaryEncoderConverter.getConversionFactor() << " secondary converter: " << secondaryEncoderConverter.getConversionFactor());
 }
 

@@ -58,23 +58,22 @@ bool EthercatNode::init() {
   int interpolationTimePeriod = workerTimeStep * 1000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(0);
 
-  EncoderCrosschecker encoderCrosschecker = NoEncoderCrosschecker();
  // double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, encoderCrosschecker);
+  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)) );
 
   double hip_left_primary_conversion_factor = param<double>("hip_left/primary_conversion_factor", 1);
   double hip_left_secondary_conversion_factor = param<double>("hip_left/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {hip_left_primary_conversion_factor}, {hip_left_secondary_conversion_factor}, encoderCrosschecker);
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {hip_left_primary_conversion_factor}, {hip_left_secondary_conversion_factor},  std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)));
 
   double knee_right_primary_conversion_factor = param<double>("knee_right/primary_conversion_factor", 1);
   double knee_right_secondary_conversion_factor = param<double>("knee_right/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor}, encoderCrosschecker);
+  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor},  std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)));
 
   double hip_right_primary_conversion_factor = param<double>("hip_right/primary_conversion_factor", 1);
   double hip_right_secondary_conversion_factor = param<double>("hip_right/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("hip_right", {hip_right_primary_conversion_factor}, {hip_right_secondary_conversion_factor}, encoderCrosschecker);
+  eposEthercatSlaveManager_->setEncoderConfig("hip_right", {hip_right_primary_conversion_factor}, {hip_right_secondary_conversion_factor},  std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)));
 
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
