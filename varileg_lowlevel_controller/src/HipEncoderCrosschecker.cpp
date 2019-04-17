@@ -6,6 +6,5 @@
 #include <cmath>
 
 bool HipEncoderCrosschecker::check(double primaryPosition, double secondaryPosition) {
-  if(std::abs((double) primaryPosition - secondaryPosition) < errorMargin_)return true;
-  else return false;
+  return std::abs(primaryPosition - secondaryPosition) < errorMargin_;
 }
