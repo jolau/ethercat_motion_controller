@@ -9,9 +9,9 @@
 
 #include "EncoderCrosschecker.hpp"
 
-class NodeEncoderCrosschecker : public EncoderCrosschecker {
+class NoCheckEncoderCrosschecker : public EncoderCrosschecker {
  public:
-  NodeEncoderCrosschecker(){}
+  NoCheckEncoderCrosschecker(){}
   virtual bool check(double primaryPosition, double secondaryPosition) override;
 };
 
