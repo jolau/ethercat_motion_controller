@@ -1,4 +1,3 @@
-#include <varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp>
 #include "varileg_lowlevel_controller/EthercatNode.hpp"
 
 namespace varileg_lowlevel_controller {
@@ -59,7 +58,7 @@ bool EthercatNode::init() {
   int interpolationTimePeriod = workerTimeStep * 1000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(0);
 
-  EncoderCrosschecker encoderCrosschecker = HipEncoderCrosschecker(0.01);
+  EncoderCrosschecker encoderCrosschecker = NoEncoderCrosschecker();
  // double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);

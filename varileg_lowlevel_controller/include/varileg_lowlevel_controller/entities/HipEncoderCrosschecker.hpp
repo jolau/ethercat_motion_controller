@@ -1,5 +1,5 @@
 //
-// Created by jolau on 13.04.19.
+// Created by wertlin on 16.04.19.
 //
 
 #ifndef VARILEG_LOWLEVEL_CONTROLLER_HIPENCODERCROSSCHECKER_HPP
@@ -7,6 +7,7 @@
 
 #include "EncoderCrosschecker.hpp"
 
+namespace varileg_lowlevel_controller {
 class HipEncoderCrosschecker : public EncoderCrosschecker {
  public:
   HipEncoderCrosschecker(double errorMargin) : errorMargin_(errorMargin) {
@@ -15,5 +16,6 @@ class HipEncoderCrosschecker : public EncoderCrosschecker {
  private:
   double errorMargin_;
 };
+}
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_HIPENCODERCROSSCHECKER_HPP
