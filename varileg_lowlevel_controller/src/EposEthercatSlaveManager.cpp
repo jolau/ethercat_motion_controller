@@ -4,6 +4,7 @@
 
 #include <varileg_lowlevel_controller/ConversionTraits.hpp>
 #include "varileg_lowlevel_controller/EposEthercatSlaveManager.hpp"
+#include "varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp"
 
 namespace varileg_lowlevel_controller {
 EposEthercatSlaveManager::~EposEthercatSlaveManager() {
@@ -267,7 +268,9 @@ void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
 
   eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
   eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
-  eposEthercatSlavePtr->setEncoderCrosschecker(std::move(encoderCrosschecker));
+ // eposEthercatSlavePtr->setEncoderCrosschecker(std::move(encoderCrosschecker));
+  eposEthercatSlavePtr->setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker>(new NoEncoderCrosschecker));
+ 
   MELO_INFO_STREAM("Slave: " << name << " primary converter: " << primaryEncoderConverter.getConversionFactor() << " secondary converter: " << secondaryEncoderConverter.getConversionFactor());
 }
 

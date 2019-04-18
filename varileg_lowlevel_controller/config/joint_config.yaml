@@ -5,7 +5,7 @@ epos_mapping:
   knee_right: 0
 
 offset_mapping:
-  hip_left: 0
+  hip_left: 1.68
   hip_right: 0
   knee_left: 1.693
   knee_right: -1.693
@@ -28,6 +28,6 @@ knee_right:
   crosscheck_margin_positiv: 1
 
 hip_right:
-  primary_conversion_factor: -3983.967
+  primary_conversion_factor: -4644.778
   secondary_conversion_factor: 346321.156
   crosscheck_margin: 0.05
