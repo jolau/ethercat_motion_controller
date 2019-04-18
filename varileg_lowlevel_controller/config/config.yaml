@@ -12,14 +12,9 @@ publishers:
     queue_size: 1
     latch: false
 
-  joint_trajectories:
-    topic: joint_trajectories
-    queue_size: 1
-    latch: false
-
 subscribers:
   joint_trajectories:
-    topic: joint_trajectories
+    topic: /joint_trajectory
     queue_size: 1
     latch: false
 
