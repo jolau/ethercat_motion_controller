@@ -12,4 +12,19 @@
               $(arg password)
               $(arg time_step)" />
               <!--$(arg launch_prefix)-->
+  
+<!--Trying out new stuff with highlevel control -->
+<node name="gui_new" pkg="gui_new" type="gui_new" /> 
+<include file="$(find varileg_generator)/launch/varileg_generator.launch" />
+
+        <!--<node name="varileg_gui" pkg="varileg_gui" type="varileg_gui" /> -->
+        <node name="varileg_sm" pkg="varileg_sm" type="varileg_sm.py" output="screen" />
+        
+        
+        <param name="robot_description" command="xacro --inorder '$(find varileg_rviz)/model.xacro'" />
+
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+        <node name="varileg_rviz" pkg="varileg_rviz" type="varileg_rviz" />
+        <node name="rviz" pkg="rviz" type="rviz" />
+        <node name="crutch_data_filter" pkg="varileg_sm" type="crutch_data_filter"  />
 </launch>
