@@ -55,7 +55,7 @@ bool EthercatNode::init() {
     }
   }
 
-  int interpolationTimePeriod = workerTimeStep * 1000;
+  int interpolationTimePeriod = workerTimeStep * 2000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
 
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
@@ -81,8 +81,8 @@ bool EthercatNode::init() {
 }
 
 void EthercatNode::setupBusManager() {
-  std::string leftBusName = param<std::string>("left_bus_name", "enp3s0");
-  //std::string rightBusName = param<std::string>("right_bus_name", "enp5s0");
+  std::string leftBusName = param<std::string>("left_bus_name", "enp4s0");
+  std::string rightBusName = param<std::string>("right_bus_name", "enp3s0");
   MELO_INFO_STREAM("after param; left bus name: " << leftBusName);
 
   soem_interface::EthercatBusBasePtr leftBus = std::make_shared<soem_interface::EthercatBusBase>(leftBusName);
@@ -93,7 +93,7 @@ void EthercatNode::setupBusManager() {
   leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
-/*
+
   soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
   busManager_->addEthercatBus(rightBus);
 
@@ -101,7 +101,8 @@ void EthercatNode::setupBusManager() {
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
-  */
+
+
 }
 
 void EthercatNode::cleanup() {
