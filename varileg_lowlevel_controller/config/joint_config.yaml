@@ -6,7 +6,7 @@ epos_mapping:
 
 offset_mapping:
   hip_left: 1.68
-  hip_right: 0
+  hip_right: 1.68
   knee_left: -1.6
   knee_right: -1.6
 
