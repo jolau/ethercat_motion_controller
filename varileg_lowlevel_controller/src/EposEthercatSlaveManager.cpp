@@ -133,6 +133,7 @@ varileg_msgs::ExtendedJointStates EposEthercatSlaveManager::getExtendedJointStat
     extendedJointStates.position.push_back(jointState.position + offset);
     extendedJointStates.primary_position.push_back(jointState.primaryPosition);
     extendedJointStates.secondary_position.push_back(jointState.secondaryPosition);
+    extendedJointStates.position_difference.push_back(jointState.positionDifference);
     extendedJointStates.velocity.push_back(jointState.velocity);
     extendedJointStates.torque.push_back(jointState.torque);
   }
@@ -146,6 +147,7 @@ void EposEthercatSlaveManager::resizeExtendedJointStates(varileg_msgs::ExtendedJ
   extendedJointStates.position.resize(size);
   extendedJointStates.primary_position.resize(size);
   extendedJointStates.secondary_position.resize(size);
+  extendedJointStates.position_difference.resize(size);
   extendedJointStates.velocity.resize(size);
   extendedJointStates.torque.resize(size);
 }
@@ -268,8 +270,8 @@ void EposEthercatSlaveManager::setEncoderConfig(const std::string &name,
 
   eposEthercatSlavePtr->setPrimaryEncoderConverter(primaryEncoderConverter);
   eposEthercatSlavePtr->setSecondaryEncoderConverter(secondaryEncoderConverter);
- // eposEthercatSlavePtr->setEncoderCrosschecker(std::move(encoderCrosschecker));
-  eposEthercatSlavePtr->setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker>(new NoEncoderCrosschecker));
+  eposEthercatSlavePtr->setEncoderCrosschecker(std::move(encoderCrosschecker));
+ // eposEthercatSlavePtr->setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker>(new NoEncoderCrosschecker));
  
   MELO_INFO_STREAM("Slave: " << name << " primary converter: " << primaryEncoderConverter.getConversionFactor() << " secondary converter: " << secondaryEncoderConverter.getConversionFactor());
 }

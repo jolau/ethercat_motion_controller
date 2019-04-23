@@ -7,27 +7,29 @@ epos_mapping:
 offset_mapping:
   hip_left: 1.68
   hip_right: 1.68
-  knee_left: -1.6
-  knee_right: -1.6
+  knee_left: -1.58
+  knee_right: -1.57
 
-knee_left:
-  primary_conversion_factor: 6417.127
-  secondary_conversion_factor: -346321.156
-  crosscheck_margin_negativ: 1
-  crosscheck_margin_positiv: 1
 
 hip_left:
   primary_conversion_factor: 4644.778
   secondary_conversion_factor: -346321.156
-  crosscheck_margin: 1
+  crosscheck_margin: 0.03
 
-knee_right:
-  primary_conversion_factor: -6417.127
-  secondary_conversion_factor: 346321.156
-  crosscheck_margin_negativ: 1
-  crosscheck_margin_positiv: 1
+knee_left:
+  primary_conversion_factor: 6417.127
+  secondary_conversion_factor: -346321.156
+  crosscheck_margin_positive: 0.025
+  crosscheck_margin_negative: 0.1
 
 hip_right:
   primary_conversion_factor: -4644.778
   secondary_conversion_factor: 346321.156
-  crosscheck_margin: 1
+  crosscheck_margin: 0.03
+
+knee_right:
+  primary_conversion_factor: -6417.127
+  secondary_conversion_factor: 346321.156
+  crosscheck_margin_positive: 0.025
+  crosscheck_margin_negative: 0.1
+

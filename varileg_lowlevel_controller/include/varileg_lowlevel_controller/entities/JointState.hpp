@@ -9,6 +9,7 @@ struct JointState {
   double position; // homed position of RSF encoder
   double primaryPosition; // not homed position of RSF encoder
   double secondaryPosition; // not homed position of MILE encoder
+  double positionDifference; //RSF - MILE encoder
   double velocity;
   double torque;
 };
