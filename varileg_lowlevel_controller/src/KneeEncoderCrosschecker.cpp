@@ -4,9 +4,9 @@
 namespace varileg_lowlevel_controller {
 bool KneeEncoderCrosschecker::check(double primaryPosition, double secondaryPosition) {
   if(primaryPosition - secondaryPosition > 0){
-    return (primaryPosition - secondaryPosition) < errorMarginUp_;
+    return (primaryPosition - secondaryPosition) < errorMarginPositive_;
   }else{
-    return (secondaryPosition - primaryPosition) < errorMarginDown_;
+    return (secondaryPosition - primaryPosition) < errorMarginNegative_;
   }
 }
 }

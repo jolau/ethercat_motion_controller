@@ -85,7 +85,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   OperatingMode sendOperatingMode_ = OperatingMode::CSP;
   OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
 
-  JointState receiveJointState_ {0, 0, 0, 0, 0};
+  JointState receiveJointState_ {0, 0, 0, 0, 0, 0};
   JointTrajectory sendJointTrajectory_ {0, 0, 0};
 
   HomingState sendHomingState_ = HomingState::UNKNOWN;

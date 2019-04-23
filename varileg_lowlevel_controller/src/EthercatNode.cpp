@@ -60,7 +60,7 @@ bool EthercatNode::init() {
 
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_left/crosscheck_margin_negativ", 1), param<double>("knee_left/crosscheck_margin_positiv", 1))));
+  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_left/crosscheck_margin_positive", 1), param<double>("knee_left/crosscheck_margin_negative", 1))));
 
   double hip_left_primary_conversion_factor = param<double>("hip_left/primary_conversion_factor", 1);
   double hip_left_secondary_conversion_factor = param<double>("hip_left/secondary_conversion_factor", 1);
@@ -68,7 +68,7 @@ bool EthercatNode::init() {
 
   double knee_right_primary_conversion_factor = param<double>("knee_right/primary_conversion_factor", 1);
   double knee_right_secondary_conversion_factor = param<double>("knee_right/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_right/crosscheck_margin_negativ", 1), param<double>("knee_right/crosscheck_margin_positiv", 1))));
+  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_right/crosscheck_margin_positive", 1), param<double>("knee_right/crosscheck_margin_negative", 1))));
 
   double hip_right_primary_conversion_factor = param<double>("hip_right/primary_conversion_factor", 1);
   double hip_right_secondary_conversion_factor = param<double>("hip_right/secondary_conversion_factor", 1);

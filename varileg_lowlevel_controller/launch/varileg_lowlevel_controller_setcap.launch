@@ -14,7 +14,7 @@
               <!--$(arg launch_prefix)-->
   
 <!--Trying out new stuff with highlevel control -->
-<node name="gui_new" pkg="gui_new" type="gui_new" /> 
+<!--<node name="gui_new" pkg="gui_new" type="gui_new" /> -->
 <include file="$(find varileg_generator)/launch/varileg_generator.launch" />
 
         <!--<node name="varileg_gui" pkg="varileg_gui" type="varileg_gui" /> -->

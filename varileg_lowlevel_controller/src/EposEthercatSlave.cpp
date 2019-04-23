@@ -56,6 +56,7 @@ void EposEthercatSlave::readInbox() {
       receiveJointState_.position = primaryEncoderConverter_.toRad(txPdo.positionActualValue);
       receiveJointState_.primaryPosition = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder);
       receiveJointState_.secondaryPosition = secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
+      receiveJointState_.positionDifference = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder) - secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
       receiveJointState_.velocity = txPdo.velocityActualValue;
       receiveJointState_.torque = txPdo.torqueActualValue;
 
