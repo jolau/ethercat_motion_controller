@@ -14,6 +14,7 @@ find_package(catkin REQUIRED
   varileg_msgs
   yaml_tools
   actionlib
+  stopwatch
   )
 
 ###################################
@@ -32,6 +33,7 @@ catkin_package(
   varileg_msgs
   yaml_tools
   actionlib
+  stopwatch
 )
 
 ###########
