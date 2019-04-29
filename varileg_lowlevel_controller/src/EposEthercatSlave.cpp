@@ -89,7 +89,8 @@ void EposEthercatSlave::writeOutbox() {
   uint16_t controlWord = 0;
   if(!encoderCrosschecker_->check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
     MELO_ERROR_STREAM(name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
-    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_QUICK_STOP_ACTIVE);
+    sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
+    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_SWITCHED_ON);
     // TODO write error
   } else {
     isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
