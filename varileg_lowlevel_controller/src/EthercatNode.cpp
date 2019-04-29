@@ -19,10 +19,12 @@ bool EthercatNode::init() {
   operatingModeServiceServer_ = advertiseService("set_operating_mode", "set_operating_mode", &EthercatNode::setOperatingModeCallback, this);
 
   constexpr double defaultWorkerTimeStep = .005;
-  constexpr double defaultMotorCurrent = 8000; //mA
+  constexpr int defaultMotorCurrent = 2000; //mA
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
   int motorCurrent = param<int>("motor_current", defaultMotorCurrent);
+
+  MELO_WARN_STREAM("current: " << motorCurrent);
 
   auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"knee_right" , 3}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
