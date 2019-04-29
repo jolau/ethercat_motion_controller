@@ -59,7 +59,7 @@ bool EthercatNode::init() {
     }
   }
 
-  int interpolationTimePeriod = workerTimeStep * 2000;
+  int interpolationTimePeriod = workerTimeStep * 1000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
   eposEthercatSlaveManager_->writeAllMotorCurrentLimit(motorCurrent);
 

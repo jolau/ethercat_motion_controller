@@ -2,7 +2,7 @@
 <launch>
   <arg name="output"                    default="screen"/>
   <arg name="node_path"                 default="$(find varileg_lowlevel_controller)/../../devel/lib/varileg_lowlevel_controller/epos_example_node"/>
-  <arg name="password"                  default="***REMOVED***"/>
+  <arg name="password"                  default="arkon13"/>
   <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
   <arg name="time_step"                 default="0.01"/>
 
