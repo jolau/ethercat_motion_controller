@@ -60,6 +60,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   OperatingMode readOperatingMode();
 
   bool writeInterpolationTimePeriod(uint8_t timePeriod);
+  bool writeMotorCurrentLimit(uint32_t motorCurrent);
   bool writeOperatingMode(const OperatingMode &operatingMode);
   bool writeHomingMethod(const HomingMethod &homingMethod);
  private:

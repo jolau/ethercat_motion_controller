@@ -340,4 +340,20 @@ bool EposEthercatSlaveManager::writeAllInterpolationTimePeriod(uint8_t timePerio
   return true;
 }
 
+bool EposEthercatSlaveManager::writeAllMotorCurrentLimit(uint32_t motorCurrent) {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  for (const auto &it : eposEthercatSlaves_) {
+    EposEthercatSlavePtr eposEthercatSlavePtr = it.second;
+    if(!eposEthercatSlavePtr->writeMotorCurrentLimit(motorCurrent)) {
+      MELO_ERROR_STREAM(it.first << ": Could not set Motor Current Limit");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+
 }
