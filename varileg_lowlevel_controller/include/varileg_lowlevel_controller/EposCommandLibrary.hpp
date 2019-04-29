@@ -43,6 +43,7 @@ const SDO MODES_OF_OPERATION = {"Modes of operation", 0x6060, 0x00};
 const SDO MODES_OF_OPERATION_DISPLAY = {"Modes of operation display", 0x6061, 0x00};
 const SDO NODE_ID = {"Node-ID", 0x2000, 0x00};
 const SDO INTERPOLATION_TIME_PERIOD_VALUE = {"Interpolation time period value", 0x60C2, 0x01};
+const SDO OUTPUT_CURRENT_LIMIT = {"Motor Current Limit in mA", 0x3001, 0x02};
 
 const SDO FOLLOWING_ERROR_WINDOW = {"Following error window", 0x6065, 0x00};
 const SDO HOME_OFFSET_MOVE_DISTANCE = {"Home offset move distance", 0x30B1, 0x00};

@@ -42,6 +42,7 @@ class EposEthercatSlaveManager {
   bool writeSetup(const std::string& name, const EposConfig eposConfig);
   bool writeHomingMethod(const std::string& name, const varileg_msgs::HomingGoal::_mode_type &homingMode);
   bool writeAllInterpolationTimePeriod(uint8_t timePeriod);
+  bool writeAllMotorCurrentLimit(uint32_t motorCurrent);
 
   void setJointName2NodeIdMap(const std::map<std::string, int> &jointName2NodeIdMap);
   void setJointOffsetMap(const std::map<std::string, double> &jointOffsetMap);
