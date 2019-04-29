@@ -201,6 +201,11 @@ bool EposEthercatSlave::writeInterpolationTimePeriod(uint8_t timePeriod) {
   return writeSDO(EposCommandLibrary::SDOs::INTERPOLATION_TIME_PERIOD_VALUE, timePeriod, false);
 }
 
+bool EposEthercatSlave::writeMotorCurrentLimit(uint32_t motorCurrent) {
+  MELO_INFO_STREAM("Write Motor Current Limit:" << static_cast<int>(motorCurrent));
+  return writeSDO(EposCommandLibrary::SDOs::OUTPUT_CURRENT_LIMIT, motorCurrent, false);
+}
+
 template<typename Value>
 bool EposEthercatSlave::writeSDO(const SDO &sdo, const Value value, const bool completeAccess) {
   if (!sendSdoWrite(sdo.index, sdo.subindex, completeAccess, value)) {
