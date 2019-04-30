@@ -61,8 +61,9 @@ bool EthercatNode::init() {
 
   int interpolationTimePeriod = workerTimeStep * 2000;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
+  ros::Duration(1).sleep();
   eposEthercatSlaveManager_->writeAllMotorCurrentLimit(motorCurrent);
-
+  ros::Duration(1).sleep();
 
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
