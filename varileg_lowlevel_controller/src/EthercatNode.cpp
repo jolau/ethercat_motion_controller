@@ -22,7 +22,8 @@ bool EthercatNode::init() {
   constexpr int defaultMotorCurrent = 2000; //mA
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
-  int motorCurrent = param<int>("motor_current", defaultMotorCurrent);
+  int motorCurrent = 4000;
+  //param<int>("motor_current", defaultMotorCurrent);
 
   MELO_WARN_STREAM("current: " << motorCurrent);
 
