@@ -20,7 +20,7 @@ knee_left:
   primary_conversion_factor: 6417.127
   secondary_conversion_factor: -346321.156
   crosscheck_margin_positive: 0.025
-  crosscheck_margin_negative: 0.02
+  crosscheck_margin_negative: 0.1
 
 hip_right:
   primary_conversion_factor: -4644.778
