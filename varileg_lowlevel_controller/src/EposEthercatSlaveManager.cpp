@@ -116,7 +116,7 @@ varileg_msgs::ExtendedJointStates EposEthercatSlaveManager::getExtendedJointStat
 
   varileg_msgs::ExtendedJointStates extendedJointStates;
 
-  MELO_INFO_STREAM(eposEthercatSlaves_.size());
+  MELO_DEBUG_STREAM(eposEthercatSlaves_.size());
 
  // resizeExtendedJointStates(extendedJointStates, eposEthercatSlaves_.size());
 
@@ -126,14 +126,14 @@ varileg_msgs::ExtendedJointStates EposEthercatSlaveManager::getExtendedJointStat
     
     double offset = getJointOffset(name);
 
-    MELO_INFO_STREAM("slave: " << name);
+    MELO_DEBUG_STREAM("slave: " << name);
     extendedJointStates.name.push_back(name);
 
     JointState jointState = eposEthercatSlavePtr->getReceiveJointState();
     extendedJointStates.position.push_back(jointState.position + offset);
     extendedJointStates.primary_position.push_back(jointState.primaryPosition);
     extendedJointStates.secondary_position.push_back(jointState.secondaryPosition);
-    extendedJointStates.position_difference.push_back(jointState.positionDifference);
+   // extendedJointStates.position_difference.push_back(jointState.positionDifference);
     extendedJointStates.velocity.push_back(jointState.velocity);
     extendedJointStates.torque.push_back(jointState.torque);
   }
@@ -147,7 +147,7 @@ void EposEthercatSlaveManager::resizeExtendedJointStates(varileg_msgs::ExtendedJ
   extendedJointStates.position.resize(size);
   extendedJointStates.primary_position.resize(size);
   extendedJointStates.secondary_position.resize(size);
-  extendedJointStates.position_difference.resize(size);
+ // extendedJointStates.position_difference.resize(size);
   extendedJointStates.velocity.resize(size);
   extendedJointStates.torque.resize(size);
 }
@@ -165,7 +165,7 @@ void EposEthercatSlaveManager::setExtendedJointTrajectories(const varileg_msgs::
   for (int i = 0; i < nameSize; ++i) {
     std::string name = extendedJointTrajectories.name[i];
     EposEthercatSlavePtr eposEthercatSlavePtr = getEposEthercatSlave(name);
-    MELO_INFO_STREAM(name);
+    MELO_DEBUG_STREAM(name);
     if (!eposEthercatSlavePtr) {
       MELO_ERROR_STREAM("Epos Slave with name " << name << " does not exist!")
       // TODO: change back!
@@ -173,7 +173,7 @@ void EposEthercatSlaveManager::setExtendedJointTrajectories(const varileg_msgs::
     }
     double offset = getJointOffset(name);
 
-    MELO_INFO_STREAM("position: " << extendedJointTrajectories.position.size());
+    MELO_DEBUG_STREAM("position: " << extendedJointTrajectories.position.size());
 
     JointTrajectory jointTrajectory;
     jointTrajectory.position = extendedJointTrajectories.position[i] - offset;
