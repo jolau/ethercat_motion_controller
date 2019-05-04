@@ -1,3 +1,4 @@
+epos_interpolation_factor: 1
 left_bus_name: enp4s0
 right_bus_name: enp3s0
 

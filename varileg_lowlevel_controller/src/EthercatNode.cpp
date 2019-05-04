@@ -21,6 +21,7 @@ bool EthercatNode::init() {
   constexpr double defaultWorkerTimeStep = .005;
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  double eposInterpolationFactor = param<double>("epos_interpolation_factor", 1);
 
   auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"knee_right" , 3}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
@@ -55,7 +56,7 @@ bool EthercatNode::init() {
     }
   }
 
-  int interpolationTimePeriod = workerTimeStep * 1000;
+  int interpolationTimePeriod = workerTimeStep * 1000 * eposInterpolationFactor;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
 
   double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
