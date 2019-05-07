@@ -168,7 +168,7 @@ void EthercatBusBase::receiveInbox() {
   }
 
   //! Receive the EtherCAT data.
-  updateReadStamp_.setNowWallClock();
+  updateReadStamp_ = ros::Time::now();
   {
     std::lock_guard<std::recursive_mutex> guard(contextMutex_);
     wkc_ = ecx_receive_processdata(&ecatContext_, EC_TIMEOUTRET);
@@ -189,7 +189,7 @@ void EthercatBusBase::sendOutbox() {
   }
 
   //! Send the EtherCAT data.
-  updateWriteStamp_.setNowWallClock();
+  updateWriteStamp_ = ros::Time::now();
   std::lock_guard<std::recursive_mutex> guard(contextMutex_);
   ecx_send_processdata(&ecatContext_);
   sentProcessData_ = true;

@@ -9,14 +9,13 @@
 // soem
 #include <soem/soem/ethercat.h>
 
-// any measurements
-#include <any_measurements/Time.hpp>
-
 #include <message_logger/message_logger.hpp>
 
 // soem_interface
 #include <soem_interface/EthercatSlaveBase.hpp>
 #include <soem_interface/common/ThreadSleep.hpp>
+
+#include <ros/time.h>
 
 namespace soem_interface {
 
@@ -44,13 +43,13 @@ class EthercatBusBase {
    * Get the time of the last successful PDO reading.
    * @return Stamp.
    */
-  const any_measurements::Time& getUpdateReadStamp() const { return updateReadStamp_; }
+  const ros::Time& getUpdateReadStamp() const { return updateReadStamp_; }
 
   /*!
    * Get the time of the last successful PDO writing.
    * @return Stamp.
    */
-  const any_measurements::Time& getUpdateWriteStamp() const { return updateWriteStamp_; }
+  const ros::Time& getUpdateWriteStamp() const { return updateWriteStamp_; }
 
   /**
    * Was startup successfully called?
@@ -234,9 +233,9 @@ class EthercatBusBase {
   std::atomic<int> wkc_;
 
   //! Time of the last successful PDO reading.
-  any_measurements::Time updateReadStamp_;
+  ros::Time updateReadStamp_;
   //! Time of the last successful PDO writing.
-  any_measurements::Time updateWriteStamp_;
+  ros::Time updateWriteStamp_;
 
   //! Maximal number of retries to configure the EtherCAT bus.
   const unsigned int ecatConfigMaxRetries_{5};

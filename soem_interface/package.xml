@@ -16,7 +16,6 @@
   <url type="website">https://bitbucket.org/leggedrobotics/soem_interface</url>
     
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>any_measurements</depend>
   <depend>message_logger</depend>
   <depend>soem</depend>
   
