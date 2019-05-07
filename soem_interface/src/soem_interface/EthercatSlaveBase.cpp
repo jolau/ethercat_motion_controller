@@ -65,6 +65,9 @@ template bool EthercatSlaveBase::sendSdoRead<float>(const uint16_t index, const 
 template bool EthercatSlaveBase::sendSdoRead<double>(const uint16_t index, const uint8_t subindex, const bool completeAccess,
                                                      double& value);
 
+template bool EthercatSlaveBase::sendSdoRead<std::bitset<128ul>>(const uint16_t index, const uint8_t subindex, const bool completeAccess,
+                                                                 std::bitset<128ul>& value);
+
 void EthercatSlaveBase::printWarnNotImplemented() { MELO_WARN_STREAM("Functionality is not implemented."); }
 
 bool EthercatSlaveBase::sendSdoReadGeneric(const std::string& indexString, const std::string& subindexString,
