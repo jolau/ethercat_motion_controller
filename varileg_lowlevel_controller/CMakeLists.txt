@@ -12,7 +12,6 @@ find_package(catkin REQUIRED
   message_logger
   soem_interface
   varileg_msgs
-  yaml_tools
   actionlib
   stopwatch
   )
