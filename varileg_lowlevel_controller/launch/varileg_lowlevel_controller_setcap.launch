@@ -4,8 +4,8 @@
   <arg name="node_path"                 default="$(find varileg_lowlevel_controller)/../../devel/lib/varileg_lowlevel_controller/varileg_lowlevel_controller_node"/>
   <arg name="password"                  default="varileg"/>
   <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
-  <arg name="time_step"                 default="0.010"/>
   <arg name="motor_current"             default="2000"/>
+  <arg name="time_step"                 default="0.02"/>
 
   <!-- Launch the lowlevel controller: Setcap and ROS Node -->
   <node pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_setcap.sh" name="varileg_lowlevel_controller_setcap" output="$(arg output)"
@@ -14,15 +14,4 @@
               $(arg time_step)
               $(arg motor_current)" />
               <!--$(arg launch_prefix)-->
-  
-<!--Trying out new stuff with highlevel control -->
-<!--<node name="gui_new" pkg="gui_new" type="gui_new" /> -->
-<!--<include file="$(find varileg_generator)/launch/varileg_generator.launch" />
-        <node name="varileg_sm" pkg="varileg_sm" type="varileg_sm.py" output="screen" />
-        <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
-      <param name="robot_description" command="xacro &#x002D;&#x002D;inorder $(find varileg_rviz)/model.xacro" />
-        <node name="varileg_rviz" pkg="varileg_rviz" type="varileg_rviz" />
-        <node name="rviz" pkg="rviz" type="rviz" />
-        <node name="crutch_data_filter" pkg="varileg_sm" type="crutch_data_filter"  /> -->
-
 </launch>

@@ -22,6 +22,7 @@ bool EthercatNode::init() {
   constexpr int defaultMotorCurrent = 2000; //mA
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
+  double eposInterpolationFactor = param<double>("epos_interpolation_factor", 1);
   int motorCurrent = 4000;
   //param<int>("motor_current", defaultMotorCurrent);
 
@@ -60,7 +61,7 @@ bool EthercatNode::init() {
     }
   }
 
-  int interpolationTimePeriod = workerTimeStep * 2000;
+  int interpolationTimePeriod = workerTimeStep * 1000 * eposInterpolationFactor;
   eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
   ros::Duration(1).sleep();
   eposEthercatSlaveManager_->writeAllMotorCurrentLimit(motorCurrent);
@@ -109,8 +110,6 @@ void EthercatNode::setupBusManager() {
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
   rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
   slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
-
-
 }
 
 void EthercatNode::cleanup() {
@@ -124,7 +123,7 @@ void EthercatNode::cleanup() {
 bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   // called by the worker which is automatically set up if rosparam standalone == True.
   // The frequency is defined in the time_step rosparam.
-  MELO_INFO("update called");
+  MELO_DEBUG_STREAM("update called");
 
   busManager_->receiveAllBusBuffers();
 
@@ -136,58 +135,6 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
   jointStatesPublisher_.publish(extendedJointStates);
   deviceStatePublisher_.publish(extendedDeviceStates);
 
-  /*if(extendedDeviceStates.device_state[0].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
-    eposEthercatSlaveManager_->setHomingState("knee_right", HomingState::HOMING_IN_PROGRESS);
-  } else {
-    MELO_INFO_STREAM(": Enabling Drive");
-    varileg_msgs::DeviceState deviceState;
-    deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
-
-    eposEthercatSlaveManager_->setDeviceState("knee_right", deviceState);
-  }*/
-
- // varileg_msgs::ExtendedJointTrajectories extendedJointTrajectories;
-
- // MELO_INFO_STREAM("states size" << extendedJointStates.name.size())
-
-//  for (int i = 0; i < extendedJointStates.name.size(); ++i) {
-//    std::string name = extendedJointStates.name[i];
-//    MELO_INFO_STREAM(name << i);
-//
-//    MELO_INFO_STREAM(name << ": Actual Position: " << extendedJointStates.position[i] << " PrimaryPosition: " << extendedJointStates.primary_position[i] << " SecondaryPosition: " << extendedJointStates.secondary_position[i] << " diff: " << (extendedJointStates.primary_position[i] - extendedJointStates.secondary_position[i]));
-//    if(extendedDeviceStates.device_state[i].state == varileg_msgs::DeviceState::STATE_OP_ENABLED) {
-//      /*extendedJointTrajectories.name.push_back(name);
-//
-//      double position = 0;
-//      if(goUp) {
-//        if (extendedJointStates.position[i] >= 1.57079) {
-//          goUp = false;
-//        }
-//
-//        position = 1.6;
-//      } else {
-//        if(extendedJointStates.position[i] <= 0) {
-//          goUp = true;
-//        }
-//
-//        position = -0.1;
-//      }
-//
-//      extendedJointTrajectories.position.push_back(position);
-//
-//      MELO_INFO_STREAM(name << ": Send Target Position: " << extendedJointTrajectories.position[i] << " goUP: " << goUp);*/
-//
-//    } else {
-//      MELO_INFO_STREAM(name << ": Enabling Drive");
-//      varileg_msgs::DeviceState deviceState;
-//      deviceState.state = varileg_msgs::DeviceState::STATE_OP_ENABLED;
-//
-//      eposEthercatSlaveManager_->setDeviceState(name, deviceState);
-//    }
-//  }
-
-//  eposEthercatSlaveManager_->setExtendedJointTrajectories(extendedJointTrajectories);
-
   eposEthercatSlaveManager_->writeAllOutboxes();
 
   busManager_->sendAllBusBuffers();
@@ -198,7 +145,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 //Subscriber
 void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg)
 {
-  MELO_INFO("Received jointTrajectoriesCallback Topic");
+  MELO_DEBUG_STREAM("Received jointTrajectoriesCallback Topic");
 
   eposEthercatSlaveManager_->setExtendedJointTrajectories(*msg);
 }

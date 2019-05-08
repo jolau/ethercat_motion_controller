@@ -59,17 +59,6 @@ void EposEthercatSlave::readInbox() {
       receiveJointState_.positionDifference = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder) - secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
       receiveJointState_.velocity = txPdo.velocityActualValue;
       receiveJointState_.torque = txPdo.torqueActualValue;
-
-      MELO_INFO_STREAM("position: " << txPdo.positionActualValue << " prim pos: " << txPdo.positionPrimaryEncoder << " sec pos: " << txPdo.positionSecondaryEncoder);
-
-     /* MELO_INFO_STREAM(
-          name_ << ": RSF Encoder: " << ((float) txPdo.positionActualValue) << " and MILE Encoder: "
-                << ((float) txPdo.PositionSecondEncoder)
-                << " diff: " << (txPdo.positionActualValue - txPdo.PositionSecondEncoder));
-      float correctedRsfPosition = (float) txPdo.positionActualValue / 40181;
-      float correctedMilePosition = (float) -1 * txPdo.PositionSecondEncoder / 2176000;
-      MELO_INFO_STREAM(name_ << ": RSF Encoder: " << correctedRsfPosition << " and MILE Encoder: " << correctedMilePosition << " diff: "
-                             << (correctedMilePosition - correctedRsfPosition))*/
       break;
     }
     case OperatingMode::HMM: {
@@ -89,7 +78,8 @@ void EposEthercatSlave::writeOutbox() {
   uint16_t controlWord = 0;
   if(!encoderCrosschecker_->check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
     MELO_ERROR_STREAM(name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
-    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_QUICK_STOP_ACTIVE);
+    sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
+    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_SWITCHED_ON);
     // TODO write error
   } else {
     isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
@@ -102,14 +92,12 @@ void EposEthercatSlave::writeOutbox() {
 
   switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
-      MELO_INFO_STREAM("Current Mode is CSP.");
-      MELO_INFO_STREAM("sendJointTraj.pos: " << sendJointTrajectory_.position);
+      MELO_DEBUG_STREAM("Current Mode is CSP.");
       rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
-      MELO_INFO_STREAM("rx.Target Position: " << rxPdo.targetPosition);
       break;
     }
     case OperatingMode::HMM: {
-      MELO_INFO_STREAM("Current Mode is HMM.");
+      MELO_DEBUG_STREAM("Current Mode is HMM.");
       applyNextHomingStateTransition(controlWord, sendHomingState_);
    /*   if(receiveDeviceState_ == DeviceState::STATE_OP_ENABLED ) {
         controlWord = 0x001F;
@@ -118,7 +106,7 @@ void EposEthercatSlave::writeOutbox() {
     }
   }
 
-  MELO_INFO_STREAM("Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
+  MELO_DEBUG_STREAM("Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
                                      << Enum::toString(sendDeviceState_) << " next controlword "
                                      << std::bitset<16>(controlWord));
   rxPdo.controlWord = controlWord;
