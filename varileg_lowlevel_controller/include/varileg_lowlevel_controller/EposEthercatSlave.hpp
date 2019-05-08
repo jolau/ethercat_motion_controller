@@ -92,7 +92,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   HomingState sendHomingState_ = HomingState::UNKNOWN;
   HomingState receiveHomingState_ = HomingState::UNKNOWN;
 
-  DeviceState sendDeviceState_ = DeviceState::STATE_UNKNOWN;
+  DeviceState sendDeviceState_ = DeviceState::STATE_SWITCH_ON_DISABLED;
   DeviceState receiveDeviceState_ = DeviceState::STATE_UNKNOWN;
 
   // Bool indicating if slave and bus startup was called
