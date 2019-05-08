@@ -33,6 +33,9 @@ bool EposEthercatSlave::startup() {
     return false;
   }
 
+  MELO_INFO_STREAM("write limit in startup:");
+  writeMotorCurrentLimit(2000);
+
 /*  if (!setOperatingMode(OperatingMode::CSP)) {
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
     return false;
