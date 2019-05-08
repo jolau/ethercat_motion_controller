@@ -1,13 +1,9 @@
 #!/bin/bash
 
-echo "TEST"
-
 # setcap does not support symbolic links, so a potential symbolic link has to be resolved first.
 resolved_symlink=$(readlink -f ${1})
 
 printf ${resolved_symlink}
-
-echo "TEST2"
 
 # setcap using password
 echo ${2} | sudo -S setcap cap_net_raw+ep ${resolved_symlink}
