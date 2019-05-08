@@ -31,7 +31,6 @@ catkin_package(
   message_logger
   soem_interface
   varileg_msgs
-  yaml_tools
   actionlib
   stopwatch
 )
