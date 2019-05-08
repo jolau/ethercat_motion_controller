@@ -24,7 +24,6 @@
   <depend>soem_interface</depend>
   <depend>std_msgs</depend>
   <depend>varileg_msgs</depend>
-  <depend>yaml_tools</depend>
   <depend>actionlib</depend>
   <depend>stopwatch</depend>
 
