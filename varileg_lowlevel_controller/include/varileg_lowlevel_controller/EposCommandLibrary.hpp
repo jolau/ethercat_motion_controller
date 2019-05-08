@@ -141,7 +141,7 @@ const std::map<DeviceState, Statusword> DEVICE_STATE_STATUSWORD_MAP
 static DeviceState toDeviceState(const uint16_t &statusword) {
   for (const auto &it : DEVICE_STATE_STATUSWORD_MAP) {
     if (it.second.isActive(statusword)) {
-      MELO_INFO_STREAM("Mapping Statusword code " << std::bitset<16>(statusword) << " to state " << Enum::toString(it.first));
+      MELO_DEBUG_STREAM("Mapping Statusword code " << std::bitset<16>(statusword) << " to state " << Enum::toString(it.first));
       return it.first;
     }
   }
@@ -162,7 +162,7 @@ const std::map<HomingState, Statusword> HOMING_STATE_STATUSWORD_MAP{
 static HomingState toHomingState(const uint16_t &statusword) {
   for (const auto &it : HOMING_STATE_STATUSWORD_MAP) {
     if (it.second.isActive(statusword)) {
-      MELO_INFO_STREAM("Mapping Statusword code " << std::bitset<16>(statusword) << " to state " << Enum::toString(it.first));
+      MELO_DEBUG_STREAM("Mapping Statusword code " << std::bitset<16>(statusword) << " to state " << Enum::toString(it.first));
       return it.first;
     }
   }
