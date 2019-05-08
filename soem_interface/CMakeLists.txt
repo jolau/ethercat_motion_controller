@@ -5,7 +5,6 @@ add_definitions(-std=c++11 -Wall -Werror)
 add_definitions(-DMELO_USE_COUT)
 
 set(PACKAGE_DEPENDENCIES
-  any_measurements
   message_logger
   soem
 )
