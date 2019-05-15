@@ -23,8 +23,7 @@ bool EthercatNode::init() {
   constexpr int priority = 10;
   double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
   double eposInterpolationFactor = param<double>("epos_interpolation_factor", 1);
-  int motorCurrent = 4000;
-  //param<int>("motor_current", defaultMotorCurrent);
+  int motorCurrent = param<int>("motor_current", defaultMotorCurrent);
 
   MELO_WARN_STREAM("current: " << motorCurrent);
 
@@ -69,7 +68,7 @@ bool EthercatNode::init() {
   /*ros::Duration(1).sleep();
   ros::Duration(1).sleep();*/
 
-  /*double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
+  double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
   double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
   eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_left/crosscheck_margin_positive", 1), param<double>("knee_left/crosscheck_margin_negative", 1))));
 
@@ -84,7 +83,6 @@ bool EthercatNode::init() {
   double hip_right_primary_conversion_factor = param<double>("hip_right/primary_conversion_factor", 1);
   double hip_right_secondary_conversion_factor = param<double>("hip_right/secondary_conversion_factor", 1);
   eposEthercatSlaveManager_->setEncoderConfig("hip_right", {hip_right_primary_conversion_factor}, {hip_right_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>("hip_right/crosscheck_margin", 1))));
-*/
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
   return true;
