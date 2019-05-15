@@ -16,6 +16,8 @@ EposEthercatSlave::EposEthercatSlave(const std::string &name,
   pdoInfo_.txPdoId_ = 0x1200;
   pdoInfo_.rxPdoSize_ = sizeof(RxPdo);
   pdoInfo_.txPdoSize_ = sizeof(TxPdo);
+
+  encoderCrosschecker_ = std::unique_ptr<EncoderCrosschecker>(new NoEncoderCrosschecker);
 }
 
 std::string EposEthercatSlave::getName() const {
@@ -33,8 +35,8 @@ bool EposEthercatSlave::startup() {
     return false;
   }
 
-  MELO_INFO_STREAM("write limit in startup:");
-  writeMotorCurrentLimit(2000);
+  //MELO_INFO_STREAM("write limit in startup:");
+ // writeMotorCurrentLimit(2000);
 
 /*  if (!setOperatingMode(OperatingMode::CSP)) {
     MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")

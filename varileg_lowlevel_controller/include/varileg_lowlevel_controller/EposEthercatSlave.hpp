@@ -17,6 +17,7 @@
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 #include "varileg_lowlevel_controller/entities/EposConfig.hpp"
+#include "varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
