@@ -17,10 +17,14 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
  // joint2eposMap.insert(std::make_pair("knee_left", 2));
   eposEthercatSlaveManager_->setJointName2NodeIdMap(joint2eposMap);
 
-  EposEthercatSlavePtr eposEthercatSlaveOne = std::make_shared<EposEthercatSlave>("epos1", bus_, 1);
+  EposStartupConfig eposStartupConfig;
+  eposStartupConfig.interpolationTimePeriod = workerTimeStep * 1000;
+  eposStartupConfig.motorCurrentLimit = param<int>("motor_current", 2000);
+
+  EposEthercatSlavePtr eposEthercatSlaveOne = std::make_shared<EposEthercatSlave>("epos1", bus_, 1, eposStartupConfig);
   slaves_.push_back(eposEthercatSlaveOne);
 
-  //EposEthercatSlavePtr eposEthercatSlaveTwo = std::make_shared<EposEthercatSlave>("epos2", bus_, 2);
+  //EposEthercatSlavePtr eposEthercatSlaveTwo = std::make_shared<EposEthercatSlave>("epos2", bus_, 2, eposStartupConfig);
   //slaves_.push_back(eposEthercatSlaveTwo);
 
   if(!bus_->startup(slaves_)){

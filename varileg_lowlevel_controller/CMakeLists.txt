@@ -58,12 +58,11 @@ add_library(${PROJECT_NAME}
   include/varileg_lowlevel_controller/entities/OperatingMode.hpp
   include/varileg_lowlevel_controller/entities/HomingState.hpp
   include/varileg_lowlevel_controller/entities/HomingMethod.hpp
-  include/varileg_lowlevel_controller/entities/EposConfig.hpp
+  include/varileg_lowlevel_controller/entities/EposStartupConfig.hpp
   include/varileg_lowlevel_controller/entities/PositionUnitConverter.hpp
   include/varileg_lowlevel_controller/entities/JointState.hpp
   include/varileg_lowlevel_controller/entities/JointTrajectory.hpp
   include/varileg_lowlevel_controller/ConversionTraits.hpp
-  include/varileg_lowlevel_controller/EposConfigSetup.hpp
   include/varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp
   src/HipEncoderCrosschecker.cpp
   src/KneeEncoderCrosschecker.cpp

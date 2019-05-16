@@ -90,7 +90,8 @@ class EthercatNode : public any_node::Node {
   actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeRight_;
   actionlib::SimpleActionServer <varileg_msgs::HomingAction> homingActionServerKneeLeft_;
 
-  void setupBusManager();
+  void setupBusManager(EposStartupConfig config);
+  void setupEncoderConfig();
 };
 
 }

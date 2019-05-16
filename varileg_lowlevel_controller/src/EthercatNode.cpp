@@ -6,89 +6,97 @@ bool EthercatNode::init() {
   MELO_INFO("init called");
   constexpr unsigned int defaultQueueSize = 1;
   //Publisher
-  jointStatesPublisher_= advertise<varileg_msgs::ExtendedJointStates>("joint_states", "joint_states",1);
-  deviceStatePublisher_= advertise<varileg_msgs::ExtendedDeviceStates>("device_states","device_states",1);
+  jointStatesPublisher_ = advertise<varileg_msgs::ExtendedJointStates>("joint_states", "joint_states", 1);
+  deviceStatePublisher_ = advertise<varileg_msgs::ExtendedDeviceStates>("device_states", "device_states", 1);
 
   //Subscriber
   jointTrajectoriesSubscriber_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize,
                                            &EthercatNode::jointTrajectoriesCallback, this);
-
-
   // Services
   deviceStateServiceServer_ = advertiseService("set_device_state", "set_device_state", &EthercatNode::setDeviceStateCallback, this);
   operatingModeServiceServer_ = advertiseService("set_operating_mode", "set_operating_mode", &EthercatNode::setOperatingModeCallback, this);
 
-  constexpr double defaultWorkerTimeStep = .005;
-  constexpr int defaultMotorCurrent = 2000; //mA
   constexpr int priority = 10;
-  double workerTimeStep = param<double>("time_step", defaultWorkerTimeStep);
-  double eposInterpolationFactor = param<double>("epos_interpolation_factor", 1);
-  int motorCurrent = param<int>("motor_current", defaultMotorCurrent);
+  double workerTimeStep = param<double>("time_step", 0.01);
 
-  MELO_WARN_STREAM("current: " << motorCurrent);
-
-  auto jointName2NodeIdMap = param<std::map<std::string, int>>("epos_mapping", {{"hip_left", 1}, {"hip_right", 2}, {"knee_left", 5}, {"knee_right", 3}});
+  auto jointName2NodeIdMap =
+      param<std::map<std::string, int>>("epos_mapping", {{"hip_left", 1}, {"hip_right", 2}, {"knee_left", 5}, {"knee_right", 3}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
-
   for (auto &pair : jointName2NodeIdMap) {
     MELO_INFO_STREAM("NodeIDMap key: " << pair.first << " value: " << pair.second)
   }
 
   auto jointOffsetMap = param<std::map<std::string, double>>("offset_mapping", {});
   eposEthercatSlaveManager_->setJointOffsetMap(jointOffsetMap);
-
   for (auto &pair : jointOffsetMap) {
     MELO_INFO_STREAM("OffsetMap key: " << pair.first << " value: " << pair.second)
   }
 
-  setupBusManager();
+  EposStartupConfig eposStartupConfig;
+  eposStartupConfig.interpolationTimePeriod = workerTimeStep * 1000 * param<double>("epos_interpolation_factor", 1);
+  eposStartupConfig.motorCurrentLimit = param<int>("motor_current", 2000);
+  setupBusManager(eposStartupConfig);
 
-  MELO_INFO_STREAM("before bus startup");
-  if(!busManager_->startupAllBuses(slavesOfBusesMap_, true)) {
+  if (!busManager_->startupAllBuses(slavesOfBusesMap_, true)) {
     MELO_ERROR("Startup of all buses failed.");
     return false;
   }
-  MELO_INFO_STREAM("after bus startup");
 
   // setup epos manager
-  for(auto it : slavesOfBusesMap_) {
-    for(soem_interface::EthercatSlaveBasePtr slave : it.second) {
+  for (auto it : slavesOfBusesMap_) {
+    for (soem_interface::EthercatSlaveBasePtr slave : it.second) {
       EposEthercatSlavePtr eposEthercatSlavePtr = std::dynamic_pointer_cast<EposEthercatSlave>(slave);
-      if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlavePtr)) {
+      if (!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlavePtr)) {
         return false;
       }
     }
   }
 
+  // worker has to be started as soon as possible as bus is started up
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
-  int interpolationTimePeriod = workerTimeStep * 1000 * eposInterpolationFactor;
-  eposEthercatSlaveManager_->writeAllInterpolationTimePeriod(interpolationTimePeriod);
-  eposEthercatSlaveManager_->writeAllMotorCurrentLimit(motorCurrent);
-  /*ros::Duration(1).sleep();
-  ros::Duration(1).sleep();*/
-
-  double knee_left_primary_conversion_factor = param<double>("knee_left/primary_conversion_factor", 1);
-  double knee_left_secondary_conversion_factor = param<double>("knee_left/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_left", {knee_left_primary_conversion_factor}, {knee_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_left/crosscheck_margin_positive", 1), param<double>("knee_left/crosscheck_margin_negative", 1))));
-
-  double hip_left_primary_conversion_factor = param<double>("hip_left/primary_conversion_factor", 1);
-  double hip_left_secondary_conversion_factor = param<double>("hip_left/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {hip_left_primary_conversion_factor}, {hip_left_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>("hip_left/crosscheck_margin", 1))));
-
-  double knee_right_primary_conversion_factor = param<double>("knee_right/primary_conversion_factor", 1);
-  double knee_right_secondary_conversion_factor = param<double>("knee_right/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("knee_right", {knee_right_primary_conversion_factor}, {knee_right_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>("knee_right/crosscheck_margin_positive", 1), param<double>("knee_right/crosscheck_margin_negative", 1))));
-
-  double hip_right_primary_conversion_factor = param<double>("hip_right/primary_conversion_factor", 1);
-  double hip_right_secondary_conversion_factor = param<double>("hip_right/secondary_conversion_factor", 1);
-  eposEthercatSlaveManager_->setEncoderConfig("hip_right", {hip_right_primary_conversion_factor}, {hip_right_secondary_conversion_factor}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>("hip_right/crosscheck_margin", 1))));
+  setupEncoderConfig();
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
   return true;
 }
 
-void EthercatNode::setupBusManager() {
+void EthercatNode::setupEncoderConfig() {
+  auto kneeLeftEncoderCrosschecker =
+      std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>(
+          "knee_left/crosscheck_margin_positive",
+          1.0), param<double>("knee_left/crosscheck_margin_negative", 1.0)));
+  eposEthercatSlaveManager_->setEncoderConfig("knee_left",
+                                              {param<double>("knee_left/primary_conversion_factor", 1.0)},
+                                              {param<double>("knee_left/secondary_conversion_factor", 1.0)},
+                                              std::move(kneeLeftEncoderCrosschecker));
+
+  auto hipLeftEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>(
+      "hip_left/crosscheck_margin",
+      1)));
+  eposEthercatSlaveManager_->setEncoderConfig("hip_left",
+                                              {param<double>("hip_left/primary_conversion_factor", 1.0)},
+                                              {param<double>("hip_left/secondary_conversion_factor", 1.0)},
+                                              std::move(hipLeftEncoderCrosschecker));
+
+  auto kneeRightEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>(
+      "knee_right/crosscheck_margin_positive",
+      1), param<double>("knee_right/crosscheck_margin_negative", 1)));
+  eposEthercatSlaveManager_->setEncoderConfig("knee_right",
+                                              {param<double>("knee_right/primary_conversion_factor", 1.0)},
+                                              {param<double>("knee_right/secondary_conversion_factor", 1.0)},
+                                              std::move(kneeRightEncoderCrosschecker));
+
+  auto hipRightEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>(
+      "hip_right/crosscheck_margin",
+      1)));
+  eposEthercatSlaveManager_->setEncoderConfig("hip_right",
+                                              {param<double>("hip_right/primary_conversion_factor", 1.0)},
+                                              {param<double>("hip_right/secondary_conversion_factor", 1.0)},
+                                              std::move(hipRightEncoderCrosschecker));
+}
+
+void EthercatNode::setupBusManager(EposStartupConfig config) {
   std::string leftBusName = param<std::string>("left_bus_name", "enp4s0");
   std::string rightBusName = param<std::string>("right_bus_name", "enp3s0");
   MELO_INFO_STREAM("after param; left bus name: " << leftBusName);
@@ -97,17 +105,23 @@ void EthercatNode::setupBusManager() {
   busManager_->addEthercatBus(leftBus);
 
   std::vector<soem_interface::EthercatSlaveBasePtr> leftBusEthercatSlaves;
-  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1));
-  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2));
+  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_1", leftBus, 1, config));
+  leftBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_left_2", leftBus, 2, config));
   slavesOfBusesMap_.insert(std::make_pair(leftBusName, leftBusEthercatSlaves));
 
   soem_interface::EthercatBusBasePtr rightBus = std::make_shared<soem_interface::EthercatBusBase>(rightBusName);
   busManager_->addEthercatBus(rightBus);
 
   std::vector<soem_interface::EthercatSlaveBasePtr> rightBusEthercatSlaves;
-  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1));
-  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2));
+  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_1", rightBus, 1, config));
+  rightBusEthercatSlaves.push_back(std::make_shared<EposEthercatSlave>("epos_right_2", rightBus, 2, config));
   slavesOfBusesMap_.insert(std::make_pair(rightBusName, rightBusEthercatSlaves));
+}
+
+void EthercatNode::preCleanup() {
+  // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
+  MELO_INFO("preCleanup called");
+  isStopped = true;
 }
 
 void EthercatNode::cleanup() {
@@ -127,9 +141,9 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 
   eposEthercatSlaveManager_->readAllInboxes();
 
+  // TODO: put publisher stuff in own thread for better speed
   varileg_msgs::ExtendedDeviceStates extendedDeviceStates = eposEthercatSlaveManager_->getExtendedDeviceStates();
   varileg_msgs::ExtendedJointStates extendedJointStates = eposEthercatSlaveManager_->getExtendedJointStates();
-
   jointStatesPublisher_.publish(extendedJointStates);
   deviceStatePublisher_.publish(extendedDeviceStates);
 
@@ -141,8 +155,7 @@ bool EthercatNode::update(const any_worker::WorkerEvent &event) {
 }
 
 //Subscriber
-void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg)
-{
+void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTrajectoriesConstPtr &msg) {
   MELO_DEBUG_STREAM("Received jointTrajectoriesCallback Topic");
 
   eposEthercatSlaveManager_->setExtendedJointTrajectories(*msg);
@@ -150,7 +163,7 @@ void EthercatNode::jointTrajectoriesCallback(const varileg_msgs::ExtendedJointTr
 
 bool EthercatNode::setOperatingModeCallback(varileg_msgs::SetOperatingModeRequest &request,
                                             varileg_msgs::SetOperatingModeResponse &response) {
-  if(eposEthercatSlaveManager_->getDeviceState(request.name).state == varileg_msgs::DeviceState::STATE_SWITCH_ON_DISABLED) {
+  if (eposEthercatSlaveManager_->getDeviceState(request.name).state == varileg_msgs::DeviceState::STATE_SWITCH_ON_DISABLED) {
     eposEthercatSlaveManager_->setOperatingMode(request.name, request.operating_mode);
     response.success = true;
   } else {
@@ -162,15 +175,16 @@ bool EthercatNode::setOperatingModeCallback(varileg_msgs::SetOperatingModeReques
 
 bool EthercatNode::setDeviceStateCallback(varileg_msgs::SetDeviceStateRequest &request, varileg_msgs::SetDeviceStateResponse &response) {
   MELO_INFO_STREAM("Set Device State Callback: " << request.name << " : " << request.target_device_state);
-  eposEthercatSlaveManager_->setDeviceState(request.name, request.target_device_state);
-  response.is_device_state_reachable = true;
+  bool stateReachable = eposEthercatSlaveManager_->setDeviceState(request.name, request.target_device_state);
+  response.is_device_state_reachable = stateReachable;
   response.current_device_state = eposEthercatSlaveManager_->getDeviceState(request.name);
   return true;
 }
 
 //Action Server
-void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::HomingAction> &homingActionServer, const std::string &name, const varileg_msgs::HomingGoalConstPtr &goal)
-{
+void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::HomingAction> &homingActionServer,
+                                  const std::string &name,
+                                  const varileg_msgs::HomingGoalConstPtr &goal) {
   MELO_INFO_STREAM("Received homingCallback Action Goal: " << static_cast<int>(goal->mode));
 
   bool success = true;
@@ -179,14 +193,14 @@ void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::Ho
   ros::Rate rate(50);
 
   varileg_msgs::HomingResult homingResult;
-  if(eposEthercatSlaveManager_->getDeviceState(name).state != varileg_msgs::DeviceState::STATE_OP_ENABLED) {
+  if (eposEthercatSlaveManager_->getDeviceState(name).state != varileg_msgs::DeviceState::STATE_OP_ENABLED) {
     homingResult.success = false;
     homingResult.message = "Wrong Device State";
     homingActionServer.setSucceeded(homingResult);
     return;
   }
 
-  if(eposEthercatSlaveManager_->getOperatingMode(name) != OperatingMode::HMM) {
+  if (eposEthercatSlaveManager_->getOperatingMode(name) != OperatingMode::HMM) {
     homingResult.success = false;
     homingResult.message = "Wrong Operating Mode";
     homingActionServer.setSucceeded(homingResult);
@@ -203,7 +217,7 @@ void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::Ho
 
   HomingState currentHomingState;
   do {
-    if(homingActionServer.isPreemptRequested() || isStopped) {
+    if (homingActionServer.isPreemptRequested() || isStopped) {
       MELO_INFO_STREAM(name << "'s Homing Action: Preempted");
       homingActionServer.setPreempted();
       success = false;
@@ -215,11 +229,11 @@ void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::Ho
     homingActionServer.publishFeedback(homingFeedback);
 
     rate.sleep();
-  } while(currentHomingState != HomingState::HOMING_SUCCESSFUL && currentHomingState != HomingState::HOMING_ERROR);
+  } while (currentHomingState != HomingState::HOMING_SUCCESSFUL && currentHomingState != HomingState::HOMING_ERROR);
 
   eposEthercatSlaveManager_->setHomingState(name, HomingState::HOMING_INTERRUPTED);
 
-  if(success) {
+  if (success) {
     homingResult.success = (currentHomingState == HomingState::HOMING_SUCCESSFUL);
     homingResult.message = Enum::toString(currentHomingState);
     homingActionServer.setSucceeded(homingResult);
@@ -241,12 +255,5 @@ void EthercatNode::homingCallbackKneeRight(const varileg_msgs::HomingGoalConstPt
 void EthercatNode::homingCallbackKneeLeft(const varileg_msgs::HomingGoalConstPtr &goal) {
   homingCallback(homingActionServerKneeLeft_, "knee_left", goal);
 }
-
-void EthercatNode::preCleanup() {
-  // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
-  MELO_INFO("preCleanup called");
-  isStopped = true;
-}
-
 
 }

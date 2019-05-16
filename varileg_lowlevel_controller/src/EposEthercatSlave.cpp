@@ -10,8 +10,9 @@ namespace varileg_lowlevel_controller {
 
 EposEthercatSlave::EposEthercatSlave(const std::string &name,
                                      const soem_interface::EthercatBusBasePtr &bus,
-                                     const uint32_t address) : soem_interface::EthercatSlaveBase(bus, address),
-                                                               name_(name) {
+                                     const uint32_t address,
+                                     EposStartupConfig eposStartupConfig) : soem_interface::EthercatSlaveBase(bus, address),
+                                                                            name_(name), eposStartupConfig_(eposStartupConfig) {
   pdoInfo_.rxPdoId_ = 0x1600;
   pdoInfo_.txPdoId_ = 0x1200;
   pdoInfo_.rxPdoSize_ = sizeof(RxPdo);
@@ -35,14 +36,9 @@ bool EposEthercatSlave::startup() {
     return false;
   }
 
-  //MELO_INFO_STREAM("write limit in startup:");
- // writeMotorCurrentLimit(2000);
+  writeInterpolationTimePeriod(eposStartupConfig_.interpolationTimePeriod);
+  writeMotorCurrentLimit(eposStartupConfig_.motorCurrentLimit);
 
-/*  if (!setOperatingMode(OperatingMode::CSP)) {
-    MELO_ERROR_STREAM(name_ << ": Could not set CSP mode.")
-    return false;
-  }
-*/
   isStartedUp_ = true;
 
   return true;
@@ -82,36 +78,31 @@ void EposEthercatSlave::writeOutbox() {
 
   uint16_t controlWord = 0;
   if(!encoderCrosschecker_->check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
-    MELO_ERROR_STREAM(name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
+    MELO_ERROR_THROTTLE_STREAM(1.0, name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
     sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
     applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_SWITCHED_ON);
     // TODO write error
   } else {
-    isDeviceStateReachable_ = applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_);
-
     // latch to current state if state is not reachable
-    if (!isDeviceStateReachable_) {
+    if (!applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_)) {
       applyNextDeviceStateTransition(controlWord, receiveDeviceState_, receiveDeviceState_);
     }
   }
 
   switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
-      MELO_DEBUG_STREAM("Current Mode is CSP.");
+      MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is CSP.");
       rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
       break;
     }
     case OperatingMode::HMM: {
-      MELO_DEBUG_STREAM("Current Mode is HMM.");
+      MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is HMM.");
       applyNextHomingStateTransition(controlWord, sendHomingState_);
-   /*   if(receiveDeviceState_ == DeviceState::STATE_OP_ENABLED ) {
-        controlWord = 0x001F;
-      }*/
       break;
     }
   }
 
-  MELO_DEBUG_STREAM("Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
+  MELO_DEBUG_THROTTLE_STREAM(1.0, "Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
                                      << Enum::toString(sendDeviceState_) << " next controlword "
                                      << std::bitset<16>(controlWord));
   rxPdo.controlWord = controlWord;
@@ -125,60 +116,8 @@ void EposEthercatSlave::shutdown() {
   bus_->writeRxPdo(address_, rxPdo);
 }
 
-bool EposEthercatSlave::writeSetup(const EposConfig &eposConfig) {
-  assert(isStartedUp_);
-
-  primaryEncoderConverter_ = eposConfig.primaryEncoderConverter;
-  secondaryEncoderConverter_ = eposConfig.secondaryEncoderConverter;
-
- // sendSdoWrite(0x607D, 0x02, false, 7000);
-
- /* MELO_INFO_STREAM("set min limit: " << eposConfig.minPositionLimitInc);
-  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MIN_POSITION_LIMIT, eposConfig.minPositionLimitInc, false)) {
-    return false;
-  }
-
-  MELO_INFO_STREAM("set max limit: " << eposConfig.maxPositionLimitInc)
-  if(!writeSDO(EposCommandLibrary::SDOs::SOFTWARE_MAX_POSITION_LIMIT, eposConfig.maxPositionLimitInc, false)) {
-    return false;
-  }
-
-  /*if(!writeSDO(EposCommandLibrary::SDOs::MAX_MOTOR_SPEED, eposConfig.maxMotorSpeedRpm, true)) {
-    return false;
-  }*/
-
-  return true;
-}
-
-bool EposEthercatSlave::writeOperatingMode(const OperatingMode &operatingMode) {
-  uint8_t operatingModeCommand = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(operatingMode);
-
-  MELO_INFO_STREAM("setting operating mode: " <<  Enum::toString(operatingMode));
-
-  // set mode
-  if (!writeSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION, operatingModeCommand, true)) {
-    MELO_ERROR_STREAM(name_ << ": Could not set mode: " << Enum::toString(operatingMode));
-    return false;
-  }
-
-  if (operatingMode != readOperatingMode()) {
-    MELO_ERROR_STREAM("Operating mode could not be set");
-    return false;
-  }
-
-  return true;
-}
-
 bool EposEthercatSlave::writeHomingMethod(const HomingMethod &homingMethod) {
   return writeSDO(EposCommandLibrary::SDOs::HOMING_METHOD, EposCommandLibrary::EposHomingMethod::toHomingMethodCommand(homingMethod), true);
-}
-
-OperatingMode EposEthercatSlave::readOperatingMode() {
-  int8_t mode = 0;
-
-  readSDO(EposCommandLibrary::SDOs::MODES_OF_OPERATION_DISPLAY, mode, false);
-
-  return EposCommandLibrary::EposOperatingMode::toOperatingMode(mode);
 }
 
 uint8_t EposEthercatSlave::readNodeId() {
@@ -314,7 +253,7 @@ bool EposEthercatSlave::applyNextDeviceStateTransition(uint16_t &controlword,
       break;
   }
 
-  MELO_ERROR_STREAM(
+  MELO_ERROR_THROTTLE_STREAM(1.0,
       "Target State: " << Enum::toString(targetState) << " can't be reached from current State: " << Enum::toString(currentState));
   return false;
 }
@@ -333,7 +272,7 @@ bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
       return true;
     case HomingState::HOMING_SUCCESSFUL:
     case HomingState::HOMING_ERROR:
-      MELO_ERROR_STREAM("Target Homing State " << Enum::toString(targetState) << " cannot be reached by master!");
+      MELO_ERROR_THROTTLE_STREAM(1.0, "Target Homing State " << Enum::toString(targetState) << " cannot be reached by master!");
       return false;
   }
 }
@@ -356,13 +295,12 @@ void EposEthercatSlave::setSendHomingState(HomingState sendHomingState) {
   sendHomingState_ = sendHomingState;
 }
 
-void EposEthercatSlave::setSendDeviceState(DeviceState sendDeviceState) {
+bool EposEthercatSlave::setSendDeviceState(DeviceState sendDeviceState) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
-  if(sendDeviceState_ != sendDeviceState) {
-    isDeviceStateReachable_ = true;
-  }
-
   sendDeviceState_ = sendDeviceState;
+
+  uint16_t dummyControlword = 0;
+  return applyNextDeviceStateTransition(dummyControlword, receiveDeviceState_, sendDeviceState_);
 }
 
 void EposEthercatSlave::setSendJointTrajectory(const JointTrajectory &sendJointTrajectory) {
@@ -393,12 +331,6 @@ void EposEthercatSlave::setSecondaryEncoderConverter(const PositionUnitConverter
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   secondaryEncoderConverter_ = secondaryEncoderConverter;
-}
-
-const bool EposEthercatSlave::isDeviceStateReachable() const {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  return isDeviceStateReachable_;
 }
 
 void EposEthercatSlave::setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker> encoderCrosschecker) {
