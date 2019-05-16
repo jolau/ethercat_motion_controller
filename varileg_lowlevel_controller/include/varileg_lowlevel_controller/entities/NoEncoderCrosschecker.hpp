@@ -11,10 +11,19 @@
 
 namespace varileg_lowlevel_controller {
 
+/**
+ * Mock crosschecker which always return true.
+ */
 class NoEncoderCrosschecker : public EncoderCrosschecker {
  public:
   NoEncoderCrosschecker(){}
-  virtual bool check(double primaryPosition, double secondaryPosition) override;
+  /**
+   * ALWAYS returns true
+   * @param primaryPosition
+   * @param secondaryPosition
+   * @return alway true
+   */
+  virtual bool check(double primaryPosition, double secondaryPosition) override { return true; };
 };
 
 }

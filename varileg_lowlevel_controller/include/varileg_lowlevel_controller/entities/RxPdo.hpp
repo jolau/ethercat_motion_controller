@@ -10,6 +10,9 @@
 
 namespace varileg_lowlevel_controller {
 
+/**
+ * RxPdo is *received on* EPOS.
+ */
 struct RxPdo {
   uint16_t	controlWord;		// 0x6040
   int8_t    operatingMode;      // 0x6060

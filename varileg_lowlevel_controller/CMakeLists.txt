@@ -64,9 +64,10 @@ add_library(${PROJECT_NAME}
   include/varileg_lowlevel_controller/entities/JointTrajectory.hpp
   include/varileg_lowlevel_controller/ConversionTraits.hpp
   include/varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp
+  include/varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp
   src/HipEncoderCrosschecker.cpp
   src/KneeEncoderCrosschecker.cpp
-  src/NoEncoderCrosschecker.cpp)
+  )
 
 
 target_link_libraries(${PROJECT_NAME}

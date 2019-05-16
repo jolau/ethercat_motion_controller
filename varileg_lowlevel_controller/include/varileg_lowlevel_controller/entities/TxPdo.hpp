@@ -10,6 +10,9 @@
 
 namespace varileg_lowlevel_controller {
 
+/**
+ * TxPdo is *sent from* EPOS.
+ */
 struct TxPdo {
   uint16_t	statusWord;					// 0x6041
   int8_t    operatingMode;              // 0x6061

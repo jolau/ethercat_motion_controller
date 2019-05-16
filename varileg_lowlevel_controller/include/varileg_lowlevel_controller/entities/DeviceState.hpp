@@ -9,6 +9,9 @@
 
 namespace varileg_lowlevel_controller {
 
+/**
+ * DeviceState correspondent to the device states of CiA 402 specification.
+ */
 enum class DeviceState {
   STATE_UNKNOWN = 0u,
   STATE_NOT_READY_TO_SWITCH_ON = 1u,
@@ -22,8 +25,12 @@ enum class DeviceState {
 };
 
 namespace Enum {
-inline const std::string toString(const DeviceState &motorControllerState) {
-  switch (motorControllerState) {
+/**
+ * Convert name of DeviceStates to String
+ * @param deviceState to be converted
+ */
+inline const std::string toString(const DeviceState &deviceState) {
+  switch (deviceState) {
     case DeviceState::STATE_UNKNOWN:
       return "STATE_UNKNOWN";
     case DeviceState::STATE_NOT_READY_TO_SWITCH_ON:
@@ -42,6 +49,8 @@ inline const std::string toString(const DeviceState &motorControllerState) {
       return "STATE_FAULT_REACTION_ACTIVE";
     case DeviceState::STATE_FAULT:
       return "STATE_FAULT";
+    default:
+      return "NO STRING CONVERSION FOR THIS DEVICE STATE";
   }
 }
 }
