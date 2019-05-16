@@ -28,10 +28,8 @@ class EposEthercatSlaveManager {
   HomingState getHomingState(const std::string &name);
   OperatingMode getOperatingMode(const std::string &name);
 
-  const bool isDeviceStateReachable(const std::string &name) const;
-
   void setExtendedJointTrajectories(const varileg_msgs::ExtendedJointTrajectories &extendedJointTrajectories);
-  void setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
+  bool setDeviceState(const std::string& name, const varileg_msgs::DeviceState &deviceStateRos);
   void setEncoderConfig(const std::string &name,
                         PositionUnitConverter primaryEncoderConverter,
                         PositionUnitConverter secondaryEncoderConverter,
@@ -39,7 +37,6 @@ class EposEthercatSlaveManager {
   void setHomingState(const std::string &name, const HomingState &homingState);
   void setOperatingMode(const std::string &name, const varileg_msgs::OperatingMode &operatingModeRos);
 
-  bool writeSetup(const std::string& name, const EposConfig eposConfig);
   bool writeHomingMethod(const std::string& name, const varileg_msgs::HomingGoal::_mode_type &homingMode);
   bool writeAllInterpolationTimePeriod(uint8_t timePeriod);
   bool writeAllMotorCurrentLimit(uint32_t motorCurrent);

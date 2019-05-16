@@ -16,14 +16,17 @@
 #include "EposCommandLibrary.hpp"
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
-#include "varileg_lowlevel_controller/entities/EposConfig.hpp"
+#include "varileg_lowlevel_controller/entities/EposStartupConfig.hpp"
 #include "varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp"
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
  public:
   EposEthercatSlave() = delete;
-  EposEthercatSlave(const std::string &name, const soem_interface::EthercatBusBasePtr &bus, const uint32_t address);
+  EposEthercatSlave(const std::string &name,
+                    const soem_interface::EthercatBusBasePtr &bus,
+                    const uint32_t address,
+                    EposStartupConfig eposStartupConfig);
   ~EposEthercatSlave() override = default;
 
   std::string getName() const override;
@@ -35,11 +38,10 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   * @return
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
-  const bool isDeviceStateReachable() const;
 
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
-  void setSendDeviceState(DeviceState sendDeviceState);
+  bool setSendDeviceState(DeviceState sendDeviceState);
   void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
   void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
   void setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker> encoderCrosschecker);
@@ -55,14 +57,10 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   void writeOutbox();
   void shutdown() override;
 
-  bool writeSetup(const EposConfig &eposConfig);
-
   uint8_t readNodeId();
-  OperatingMode readOperatingMode();
 
   bool writeInterpolationTimePeriod(uint8_t timePeriod);
   bool writeMotorCurrentLimit(uint32_t motorCurrent);
-  bool writeOperatingMode(const OperatingMode &operatingMode);
   bool writeHomingMethod(const HomingMethod &homingMethod);
  private:
   template <typename Value>
@@ -80,6 +78,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   const std::string name_;
   PdoInfo pdoInfo_;
+  EposStartupConfig eposStartupConfig_;
+
   PositionUnitConverter primaryEncoderConverter_ {1};
   PositionUnitConverter secondaryEncoderConverter_ {1};
   std::unique_ptr<EncoderCrosschecker> encoderCrosschecker_;
@@ -98,8 +98,6 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   // Bool indicating if slave and bus startup was called
   bool isStartedUp_{false};
-
-  bool isDeviceStateReachable_ {true};
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;
