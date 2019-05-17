@@ -17,8 +17,6 @@ EposEthercatSlave::EposEthercatSlave(const std::string &name,
   pdoInfo_.txPdoId_ = 0x1200;
   pdoInfo_.rxPdoSize_ = sizeof(RxPdo);
   pdoInfo_.txPdoSize_ = sizeof(TxPdo);
-
-  encoderCrosschecker_ = std::unique_ptr<EncoderCrosschecker>(new NoEncoderCrosschecker);
 }
 
 std::string EposEthercatSlave::getName() const {
@@ -54,10 +52,9 @@ void EposEthercatSlave::readInbox() {
 
   switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
-      receiveJointState_.position = primaryEncoderConverter_.toRad(txPdo.positionActualValue);
-      receiveJointState_.primaryPosition = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder);
-      receiveJointState_.secondaryPosition = secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
-      receiveJointState_.positionDifference = primaryEncoderConverter_.toRad(txPdo.positionPrimaryEncoder) - secondaryEncoderConverter_.toRad(txPdo.positionSecondaryEncoder);
+      receiveJointState_.position = jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionActualValue) + jointSpecifications_.homeOffset;
+      receiveJointState_.primaryPosition = jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionPrimaryEncoder);
+      receiveJointState_.secondaryPosition = jointSpecifications_.secondaryEncoderConverter.toRad(txPdo.positionSecondaryEncoder);
       receiveJointState_.velocity = txPdo.velocityActualValue;
       receiveJointState_.torque = txPdo.torqueActualValue;
       break;
@@ -77,7 +74,7 @@ void EposEthercatSlave::writeOutbox() {
   rxPdo.operatingMode = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(sendOperatingMode_);
 
   uint16_t controlWord = 0;
-  if(!encoderCrosschecker_->check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
+  if(!jointSpecifications_.encoderCrosschecker.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
     MELO_ERROR_THROTTLE_STREAM(1.0, name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
     sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
     applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_SWITCHED_ON);
@@ -92,7 +89,13 @@ void EposEthercatSlave::writeOutbox() {
   switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
       MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is CSP.");
-      rxPdo.targetPosition = primaryEncoderConverter_.toInc(sendJointTrajectory_.position);
+      // apply home offset
+      double targetPositionRad = sendJointTrajectory_.position - jointSpecifications_.homeOffset;
+
+      // apply position limits
+      targetPositionRad = boost::algorithm::clamp(targetPositionRad, jointSpecifications_.minPositionLimit, jointSpecifications_.maxPositionLimit);
+
+      rxPdo.targetPosition = jointSpecifications_.primaryEncoderConverter.toInc(targetPositionRad);
       break;
     }
     case OperatingMode::HMM: {
@@ -321,28 +324,21 @@ OperatingMode EposEthercatSlave::getReceiveOperatingMode() const {
   return receiveOperatingMode_;
 }
 
-void EposEthercatSlave::setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter) {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  primaryEncoderConverter_ = primaryEncoderConverter;
-}
-
-void EposEthercatSlave::setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter) {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  secondaryEncoderConverter_ = secondaryEncoderConverter;
-}
-
-void EposEthercatSlave::setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker> encoderCrosschecker) {
-  std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-  encoderCrosschecker_ = std::move(encoderCrosschecker);
-}
-
 void EposEthercatSlave::setSendOperatingMode(OperatingMode sendOperatingMode) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   EposEthercatSlave::sendOperatingMode_ = sendOperatingMode;
+}
+
+void EposEthercatSlave::setJointSpecifications(JointSpecifications &jointSpecifications) {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+  // set initial target position to home position, if not already set somehow else
+  if(sendJointTrajectory_.position == jointSpecifications_.homeOffset) {
+    sendJointTrajectory_.position = jointSpecifications.homeOffset;
+  }
+
+  jointSpecifications_ = jointSpecifications;
 }
 
 }

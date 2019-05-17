@@ -11,13 +11,14 @@
 #include <varileg_lowlevel_controller/entities/JointState.hpp>
 #include <varileg_lowlevel_controller/entities/JointTrajectory.hpp>
 #include <varileg_lowlevel_controller/entities/EncoderCrosschecker.hpp>
+#include <varileg_lowlevel_controller/entities/JointSpecifications.hpp>
 #include "varileg_lowlevel_controller/entities/RxPdo.hpp"
 #include "varileg_lowlevel_controller/entities/TxPdo.hpp"
 #include "EposCommandLibrary.hpp"
 #include "varileg_lowlevel_controller/entities/DeviceState.hpp"
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 #include "varileg_lowlevel_controller/entities/EposStartupConfig.hpp"
-#include "varileg_lowlevel_controller/entities/NoEncoderCrosschecker.hpp"
+#include <boost/algorithm/clamp.hpp>
 
 namespace varileg_lowlevel_controller {
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
@@ -39,12 +40,10 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
 
+  void setJointSpecifications(JointSpecifications &jointSpecifications);
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
   void setSendHomingState(HomingState sendHomingState);
   bool setSendDeviceState(DeviceState sendDeviceState);
-  void setPrimaryEncoderConverter(const PositionUnitConverter &primaryEncoderConverter);
-  void setSecondaryEncoderConverter(const PositionUnitConverter &secondaryEncoderConverter);
-  void setEncoderCrosschecker(std::unique_ptr<EncoderCrosschecker> encoderCrosschecker);
   void setSendOperatingMode(OperatingMode sendOperatingMode);
 
   const JointState getReceiveJointState() const;
@@ -80,14 +79,12 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   PdoInfo pdoInfo_;
   EposStartupConfig eposStartupConfig_;
 
-  PositionUnitConverter primaryEncoderConverter_ {1};
-  PositionUnitConverter secondaryEncoderConverter_ {1};
-  std::unique_ptr<EncoderCrosschecker> encoderCrosschecker_;
+  JointSpecifications jointSpecifications_;
 
   OperatingMode sendOperatingMode_ = OperatingMode::CSP;
   OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
 
-  JointState receiveJointState_ {0, 0, 0, 0, 0, 0};
+  JointState receiveJointState_ {0, 0, 0, 0, 0};
   JointTrajectory sendJointTrajectory_ {0, 0, 0};
 
   HomingState sendHomingState_ = HomingState::UNKNOWN;

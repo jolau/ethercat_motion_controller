@@ -3,7 +3,6 @@
 //
 
 #include <varileg_lowlevel_controller/examples/EposExampleNode.hpp>
-#include <varileg_lowlevel_controller/entities/HipEncoderCrosschecker.hpp>
 
 bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   MELO_INFO("init called");
@@ -22,6 +21,16 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
   eposStartupConfig.motorCurrentLimit = param<int>("motor_current", 2000);
 
   EposEthercatSlavePtr eposEthercatSlaveOne = std::make_shared<EposEthercatSlave>("epos1", bus_, 1, eposStartupConfig);
+
+  JointSpecifications jointSpecificationsOne;
+  jointSpecificationsOne.primaryEncoderConverter = {1};
+  jointSpecificationsOne.secondaryEncoderConverter = {1};
+  jointSpecificationsOne.encoderCrosschecker = {DBL_MAX, DBL_MAX};
+  jointSpecificationsOne.homeOffset = 0;
+  jointSpecificationsOne.minPositionLimit = -DBL_MAX;
+  jointSpecificationsOne.maxPositionLimit = DBL_MAX;
+  eposEthercatSlaveOne->setJointSpecifications(jointSpecificationsOne);
+
   slaves_.push_back(eposEthercatSlaveOne);
 
   //EposEthercatSlavePtr eposEthercatSlaveTwo = std::make_shared<EposEthercatSlave>("epos2", bus_, 2, eposStartupConfig);
@@ -41,7 +50,7 @@ bool varileg_lowlevel_controller::examples::EposExampleNode::init() {
     return false;
   };
 
-  eposEthercatSlaveManager_->setEncoderConfig("hip_left", {3983.96653}, {-346321.156}, std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(0.01)));
+  eposEthercatSlaveManager_->setJointSpecifications("hip_left", JointSpecifications());
 
  /* if(!eposEthercatSlaveManager_->addEposEthercatSlave(eposEthercatSlaveTwo)) {
     MELO_ERROR("Could add epos two to manager.")
