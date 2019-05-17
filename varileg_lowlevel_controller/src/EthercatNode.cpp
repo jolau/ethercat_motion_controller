@@ -26,12 +26,6 @@ bool EthercatNode::init() {
     MELO_INFO_STREAM("NodeIDMap key: " << pair.first << " value: " << pair.second)
   }
 
-  auto jointOffsetMap = param<std::map<std::string, double>>("offset_mapping", {});
-  eposEthercatSlaveManager_->setJointOffsetMap(jointOffsetMap);
-  for (auto &pair : jointOffsetMap) {
-    MELO_INFO_STREAM("OffsetMap key: " << pair.first << " value: " << pair.second)
-  }
-
   EposStartupConfig eposStartupConfig;
   eposStartupConfig.interpolationTimePeriod = workerTimeStep * 1000 * param<double>("epos_interpolation_factor", 1);
   eposStartupConfig.motorCurrentLimit = param<int>("motor_current", 2000);
@@ -55,45 +49,28 @@ bool EthercatNode::init() {
   // worker has to be started as soon as possible as bus is started up
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
-  setupEncoderConfig();
+  for (auto &pair : jointName2NodeIdMap) {
+    std::string jointName = pair.first;
+    eposEthercatSlaveManager_->setJointSpecifications(jointName, loadJointSpecifications(jointName));
+  }
 
   // if you encounter an error in the init function and wish to shut down the node, you can return false
   return true;
 }
 
-void EthercatNode::setupEncoderConfig() {
-  auto kneeLeftEncoderCrosschecker =
-      std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>(
-          "knee_left/crosscheck_margin_positive",
-          1.0), param<double>("knee_left/crosscheck_margin_negative", 1.0)));
-  eposEthercatSlaveManager_->setEncoderConfig("knee_left",
-                                              {param<double>("knee_left/primary_conversion_factor", 1.0)},
-                                              {param<double>("knee_left/secondary_conversion_factor", 1.0)},
-                                              std::move(kneeLeftEncoderCrosschecker));
+JointSpecifications EthercatNode::loadJointSpecifications(std::string jointName) {
+  JointSpecifications jointSpecifications;
 
-  auto hipLeftEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>(
-      "hip_left/crosscheck_margin",
-      1)));
-  eposEthercatSlaveManager_->setEncoderConfig("hip_left",
-                                              {param<double>("hip_left/primary_conversion_factor", 1.0)},
-                                              {param<double>("hip_left/secondary_conversion_factor", 1.0)},
-                                              std::move(hipLeftEncoderCrosschecker));
+  jointSpecifications.primaryEncoderConverter = {param<double>(jointName + "/primary_conversion_factor", 1.0)};
+  jointSpecifications.secondaryEncoderConverter = {param<double>(jointName + "/secondary_conversion_factor", 1.0)};
+  jointSpecifications.encoderCrosschecker = EncoderCrosschecker(param<double>(
+      jointName + "/crosscheck_margin_positive",
+      1.0), param<double>(jointName + "/crosscheck_margin_negative", 1.0));
+  jointSpecifications.homeOffset = param<double>(jointName + "/home_offset", 0);
+  jointSpecifications.minPositionLimit = param<double>(jointName + "/min_position_limit", 0);
+  jointSpecifications.maxPositionLimit = param<double>(jointName + "/max_position_limit", 0);
 
-  auto kneeRightEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new KneeEncoderCrosschecker(param<double>(
-      "knee_right/crosscheck_margin_positive",
-      1), param<double>("knee_right/crosscheck_margin_negative", 1)));
-  eposEthercatSlaveManager_->setEncoderConfig("knee_right",
-                                              {param<double>("knee_right/primary_conversion_factor", 1.0)},
-                                              {param<double>("knee_right/secondary_conversion_factor", 1.0)},
-                                              std::move(kneeRightEncoderCrosschecker));
-
-  auto hipRightEncoderCrosschecker = std::unique_ptr<EncoderCrosschecker>(new HipEncoderCrosschecker(param<double>(
-      "hip_right/crosscheck_margin",
-      1)));
-  eposEthercatSlaveManager_->setEncoderConfig("hip_right",
-                                              {param<double>("hip_right/primary_conversion_factor", 1.0)},
-                                              {param<double>("hip_right/secondary_conversion_factor", 1.0)},
-                                              std::move(hipRightEncoderCrosschecker));
+  return jointSpecifications;
 }
 
 void EthercatNode::setupBusManager(EposStartupConfig config) {
