@@ -25,6 +25,11 @@ inline static Msg convert(const MsgRos& msgRos) {   \
 
 namespace varileg_lowlevel_controller {
 
+/**
+ * Converts between representations of ROS messages and local data objects.
+ * @tparam Msg_
+ * @tparam MsgRos_
+ */
 template<typename Msg_, typename MsgRos_>
 class ConversionTraits;
 

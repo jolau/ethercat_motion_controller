@@ -5,6 +5,7 @@
 #ifndef VARILEG_LOWLEVEL_CONTROLLER_POSITIONUNITCONVERTER_HPP
 #define VARILEG_LOWLEVEL_CONTROLLER_POSITIONUNITCONVERTER_HPP
 
+namespace varileg_lowlevel_controller {
 /**
  * Converts between radian and increments (encoder ticks)
  */
@@ -30,12 +31,12 @@ class PositionUnitConverter {
     return rad * conversionFactor_;
   };
 
-  double getConversionFactor(){
+  double getConversionFactor() {
     return conversionFactor_;
   }
 
  private:
   double conversionFactor_;
 };
-
+}
 #endif //VARILEG_LOWLEVEL_CONTROLLER_POSITIONUNITCONVERTER_HPP

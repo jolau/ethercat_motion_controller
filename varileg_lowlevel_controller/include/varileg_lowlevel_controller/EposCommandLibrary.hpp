@@ -13,30 +13,51 @@
 #include "varileg_lowlevel_controller/entities/HomingMethod.hpp"
 
 namespace varileg_lowlevel_controller {
+/**
+ * Service Data Object, as defined in EPOS Firmware specifications.
+ */
 struct SDO {
-  const std::string name;
+  const std::string name; ///< Describes what SDO does. Usually title as in EPOS Firmware specifications.
   const uint16_t index;
   const uint8_t subindex;
 };
 
+/**
+ * Controlword as specified in EPOS firmware specifications. Consists of #word and #mask to only change the necessary bits.
+ */
 struct Controlword {
   uint16_t word;
   uint16_t mask;
 
+  /**
+   * Apply this controlword on existing controlword. Changes only the bits in #mask with the #word.
+   * @param controlword Existing controlword to be changed.
+   */
   void apply(uint16_t &controlword) const {
     controlword = (controlword & ~mask) | (word & mask);
   }
 };
 
+/**
+ * Statusword as specified in EPOS firmware specifications. Consists of #word and #mask to compare the necessary bits.
+ */
 struct Statusword {
   uint16_t word;
   uint16_t mask;
 
+  /**
+   * Check if this statusword is active, by checking if word equals the masked statusword.
+   * @param statusword Statusword to be checked.
+   * @return true if statusword is active.
+   */
   bool isActive(const uint16_t &statusword) const {
     return (statusword & mask) == word;
   };
 };
 
+/**
+ * Representation of EPOS firmware specifications. Displays only the needed part of it.
+ */
 namespace EposCommandLibrary {
 namespace SDOs {
 const SDO MODES_OF_OPERATION = {"Modes of operation", 0x6060, 0x00};
@@ -90,6 +111,9 @@ const Statusword HOMING_ERROR = {0x2000, 0x3000};
 }
 
 namespace EposOperatingMode {
+/**
+ * Mapping between enum and command byte.
+ */
 const std::map<OperatingMode, uint8_t> OPERATING_MODE = {
     {OperatingMode::PPM, 1},
     {OperatingMode::PVM, 3},
@@ -99,6 +123,11 @@ const std::map<OperatingMode, uint8_t> OPERATING_MODE = {
     {OperatingMode::CST, 10}
 };
 
+/**
+ * Convert byte coming from EPOS to #OperatingMode.
+ * @param operatingModeCommand byte coming from EPOS
+ * @return corresponding #OperatingMode. If byte is unknown, OperatingMode::UNKNOWN is returned.
+ */
 static OperatingMode toOperatingMode(const uint8_t &operatingModeCommand) {
   for (const auto &it : OPERATING_MODE) {
     if (it.second == operatingModeCommand) {
@@ -110,6 +139,11 @@ static OperatingMode toOperatingMode(const uint8_t &operatingModeCommand) {
   return OperatingMode::UNKNOWN;
 }
 
+/**
+ * Convert #OperatingMode to byte as understood by EPOS.
+ * @param operatingMode to be converted
+ * @return command byte. If OperatingMode unknown, return 0.
+ */
 static uint8_t toOperatingModeCommand(const OperatingMode &operatingMode) {
   const auto &it = OPERATING_MODE.find(operatingMode);
   if (it == OPERATING_MODE.end()) {
@@ -120,6 +154,9 @@ static uint8_t toOperatingModeCommand(const OperatingMode &operatingMode) {
 };
 
 namespace EposDeviceState {
+/**
+ * Mapping between #DeviceState and its #Statusword.
+ */
 const std::map<DeviceState, Statusword> DEVICE_STATE_STATUSWORD_MAP
     {
         {DeviceState::STATE_NOT_READY_TO_SWITCH_ON,
@@ -136,9 +173,14 @@ const std::map<DeviceState, Statusword> DEVICE_STATE_STATUSWORD_MAP
          Statuswords::QUICK_STOP_ACTIVE},
         {DeviceState::STATE_FAULT_REACTION_ACTIVE,
          Statuswords::FAULT_REACTION_ACTIVE},
-        {DeviceState::STATE_FAULT, EposCommandLibrary::Statuswords::FAULT}
+        {DeviceState::STATE_FAULT, Statuswords::FAULT}
     };
 
+/**
+ * Convert #Statusword to corresponding #DeviceState.
+ * @param statusword to be converted.
+ * @return corresponding DeviceState. If statusword unknown, return DeviceState::STATE_UNKNOWN
+ */
 static DeviceState toDeviceState(const uint16_t &statusword) {
   for (const auto &it : DEVICE_STATE_STATUSWORD_MAP) {
     if (it.second.isActive(statusword)) {
@@ -153,6 +195,9 @@ static DeviceState toDeviceState(const uint16_t &statusword) {
 }
 
 namespace EposHomingState {
+/**
+ * Mapping between #HomingState and its #Statusword.
+ */
 const std::map<HomingState, Statusword> HOMING_STATE_STATUSWORD_MAP{
     {HomingState::HOMING_IN_PROGRESS, Statuswords::HOMING_IN_PROGRESS},
     {HomingState::HOMING_INTERRUPTED, Statuswords::HOMING_INTERRUPTED},
@@ -160,6 +205,11 @@ const std::map<HomingState, Statusword> HOMING_STATE_STATUSWORD_MAP{
     {HomingState::HOMING_ERROR, Statuswords::HOMING_ERROR}
 };
 
+/**
+ * Convert #Statusword to corresponding #HomingState
+ * @param statusword to be converted.
+ * @return corresponding HomingState. If statusword unknown, return HomingState::STATE_UNKNOWN
+ */
 static HomingState toHomingState(const uint16_t &statusword) {
   for (const auto &it : HOMING_STATE_STATUSWORD_MAP) {
     if (it.second.isActive(statusword)) {
@@ -174,12 +224,20 @@ static HomingState toHomingState(const uint16_t &statusword) {
 }
 
 namespace EposHomingMethod {
+/**
+ * Mapping between #HomingMethod and its command byte.
+ */
 // TODO: add all homing methods
 const std::map<HomingMethod, int8_t> HOMING_METHOD_COMMAND_MAP{
     {HomingMethod::INDEX_POSITIVE_SPEED, 34},
     {HomingMethod::INDEX_NEGATIVE_SPEED, 33}
 };
 
+/**
+ * Convert #HomingMethod to its command byte.
+ * @param homingMethod to be converted
+ * @return command byte. Return 0 if #HomingMethod unknown.
+ */
 static uint8_t toHomingMethodCommand(const HomingMethod &homingMethod) {
   const auto &it = HOMING_METHOD_COMMAND_MAP.find(homingMethod);
   if (it == HOMING_METHOD_COMMAND_MAP.end()) {

@@ -10,14 +10,18 @@
 #include "PositionUnitConverter.hpp"
 
 namespace varileg_lowlevel_controller {
-  struct JointSpecifications {
-    PositionUnitConverter primaryEncoderConverter {1};
-    PositionUnitConverter secondaryEncoderConverter {1};
-    EncoderCrosschecker encoderCrosschecker {0, 0};
-    double homeOffset {0};
-    double minPositionLimit {0};
-    double maxPositionLimit {0};
-  };
+
+/**
+ * Collection of hardware specific specification of a Joint.
+ */
+struct JointSpecifications {
+  PositionUnitConverter primaryEncoderConverter{1};
+  PositionUnitConverter secondaryEncoderConverter{1};
+  EncoderCrosschecker encoderCrosschecker{0, 0};
+  double homeOffset{0};
+  double minPositionLimit{0};
+  double maxPositionLimit{0};
+};
 }
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_JOINTSPECIFICATIONS_HPP

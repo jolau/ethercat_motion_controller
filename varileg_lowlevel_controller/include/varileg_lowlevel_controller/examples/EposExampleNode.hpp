@@ -13,6 +13,9 @@
 
 namespace varileg_lowlevel_controller {
 namespace examples {
+/**
+ * ExampleNode used for testing. Works without slave manager and bus manager.
+ */
 class EposExampleNode : public any_node::Node {
  public:
   EposExampleNode() = delete; // constructor needs to take a shared_ptr to a ros::Nodehandle instance.

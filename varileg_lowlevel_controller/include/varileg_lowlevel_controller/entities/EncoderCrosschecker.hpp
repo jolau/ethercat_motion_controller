@@ -6,12 +6,12 @@
 namespace varileg_lowlevel_controller {
 
 /**
- * Interface for Encoder Crosschecker between the primary and secondary position.
+ * Encoder Crosschecker between the primary and secondary position.
  */
 class EncoderCrosschecker {
  public:
   /**
-   * Crosscheck both encoder position.
+   * Crosscheck both encoder position. Checks if difference exceed a error margin (with distinction of the direction),
    * @param primaryPosition in radian
    * @param secondaryPosition in radian
    * @return true if check is in bounds

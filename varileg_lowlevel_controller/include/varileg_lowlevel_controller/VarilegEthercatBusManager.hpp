@@ -6,6 +6,8 @@
 #define VARILEG_LOWLEVEL_CONTROLLER_VARILEGETHERCATBUSMANAGER_HPP
 
 #include <soem_interface/EthercatBusManagerBase.hpp>
+
+namespace varileg_lowlevel_controller {
 class VarilegEthercatBusManager : public soem_interface::EthercatBusManagerBase {
  public:
   VarilegEthercatBusManager() = default;
@@ -17,5 +19,6 @@ class VarilegEthercatBusManager : public soem_interface::EthercatBusManagerBase 
 };
 
 using VarilegEthercatBusManagerPtr = std::shared_ptr<VarilegEthercatBusManager>;
+}
 
 #endif //VARILEG_LOWLEVEL_CONTROLLER_VARILEGETHERCATBUSMANAGER_HPP
