@@ -10,8 +10,8 @@ hip_left:
   home_offset: 1.6
   crosscheck_margin_positive: 0.1
   crosscheck_margin_negative: 0.1
-  min_position_limit: -3
-  max_position_limit: 3
+  min_position_limit: -0.262486554
+  max_position_limit: 2.102923419
 
 knee_left:
   primary_conversion_factor: 6413.94
@@ -19,8 +19,8 @@ knee_left:
   home_offset: -1.564
   crosscheck_margin_positive: 0.05
   crosscheck_margin_negative: 0.15
-  min_position_limit: -3
-  max_position_limit: 3
+  min_position_limit: -2.109686427
+  max_position_limit: -0.086748888
 
 hip_right:
   primary_conversion_factor: -4611.67
@@ -28,8 +28,8 @@ hip_right:
   home_offset: 1.545
   crosscheck_margin_positive: 0.1
   crosscheck_margin_negative: 0.1
-  min_position_limit: -3
-  max_position_limit: 3
+  min_position_limit: -0.262371299
+  max_position_limit: 2.101197646
 
 knee_right:
   primary_conversion_factor: -6418.40
@@ -37,6 +37,6 @@ knee_right:
   home_offset: -1.514
   crosscheck_margin_positive: 0.05
   crosscheck_margin_negative: 0.15
-  min_position_limit: -3
-  max_position_limit: 3
+  min_position_limit: -2.093583697
+  max_position_limit: -0.08700885
 
