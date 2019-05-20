@@ -89,11 +89,13 @@ void EposEthercatSlave::writeOutbox() {
   switch (receiveOperatingMode_) {
     case OperatingMode::CSP: {
       MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is CSP.");
-      // apply home offset
-      double targetPositionRad = sendJointTrajectory_.position - jointSpecifications_.homeOffset;
-
       // apply position limits
-      targetPositionRad = boost::algorithm::clamp(targetPositionRad, jointSpecifications_.minPositionLimit, jointSpecifications_.maxPositionLimit);
+      double targetPositionRad = boost::algorithm::clamp(sendJointTrajectory_.position, jointSpecifications_.minPositionLimit, jointSpecifications_.maxPositionLimit);
+      MELO_INFO_THROTTLE_STREAM(1, name_ << ": targetPos: " << targetPositionRad);
+
+      // apply home offset
+      targetPositionRad -= jointSpecifications_.homeOffset;
+
 
       rxPdo.targetPosition = jointSpecifications_.primaryEncoderConverter.toInc(targetPositionRad);
       break;
