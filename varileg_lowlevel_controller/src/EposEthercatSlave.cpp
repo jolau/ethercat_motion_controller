@@ -318,7 +318,7 @@ const JointState EposEthercatSlave::getReceiveJointState() const {
   return receiveJointState_;
 }
 
-OperatingMode EposEthercatSlave::getReceiveOperatingMode() const {
+const OperatingMode EposEthercatSlave::getReceiveOperatingMode() const {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   return receiveOperatingMode_;

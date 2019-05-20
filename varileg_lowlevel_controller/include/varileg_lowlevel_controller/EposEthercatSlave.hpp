@@ -21,6 +21,9 @@
 #include <boost/algorithm/clamp.hpp>
 
 namespace varileg_lowlevel_controller {
+/**
+ * Represantion and interface to a EPOS motor controller (slave)
+ */
 class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
  public:
   EposEthercatSlave() = delete;
@@ -36,36 +39,85 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
 
   /**
   * Was startup successfully called?
-  * @return
+  * @return true if slave and bus are started up.
   */
   const bool isStartedUp() const { return isStartedUp_ && bus_->isStartedUp(); }
 
+  /**
+   * Set jointSpecifactions_ and set sendJointrajectory_.position to homePosition to prevent a jump to previous home position.
+   * @param jointSpecifications
+   */
   void setJointSpecifications(JointSpecifications &jointSpecifications);
+
+  /**
+   * Set JointTrajectory which will be sent by next cycle if in CSP mode.
+   * @param sendJointTrajectory to be sent by next cycle.
+   */
   void setSendJointTrajectory(const JointTrajectory &sendJointTrajectory);
+
+  /**
+   * Set target HomingState which will be sent by next cycle if in HMM mode.
+   * @param sendHomingState to be sent by next cycle.
+   */
   void setSendHomingState(HomingState sendHomingState);
+
+  /**
+   * Set target DeviceState which will be sent by next cycle.
+   * @param sendDeviceState to be sent by next cycle.
+   * @return true if target sendDeviceState is reachable.
+   */
   bool setSendDeviceState(DeviceState sendDeviceState);
+
+  /**
+   * Set OperatingMode which will be sent by next cycle.
+   * @param sendOperatingMode to be sent by next cycle.
+   */
   void setSendOperatingMode(OperatingMode sendOperatingMode);
 
+  /**
+   * Get current JointState as received at last cycle. Only updated if in CSP mode.
+   * @return current JointState
+   */
   const JointState getReceiveJointState() const;
+
+  /**
+   * Get current HomingState as received at last cycle. Only updated if in HMM mode.
+   * @return current HomingState
+   */
   const HomingState getReceiveHomingState() const;
+
+  /**
+  * Get current DeviceState as received at last cycle.
+  * @return current DeviceState
+  */
   const DeviceState getReceiveDeviceState() const;
-  OperatingMode getReceiveOperatingMode() const;
+
+  /**
+  * Get current OperatingMode as received at last cycle.
+  * @return current OperatingMode
+  */
+  const OperatingMode getReceiveOperatingMode() const;
+
 
   bool startup() override;
   void readInbox();
   void writeOutbox();
   void shutdown() override;
 
+  /**
+   * Read current NodeID EPOS with SDO.
+   * @return current NodeID of EPOS
+   */
   uint8_t readNodeId();
 
   bool writeInterpolationTimePeriod(uint8_t timePeriod);
   bool writeMotorCurrentLimit(uint32_t motorCurrent);
   bool writeHomingMethod(const HomingMethod &homingMethod);
  private:
-  template <typename Value>
+  template<typename Value>
   bool writeSDO(const SDO &sdo, const Value value, const bool completeAccess);
 
-  template <typename Value>
+  template<typename Value>
   bool readSDO(const SDO &sdo, Value &value, const bool completeAccess);
 
   static bool applyNextDeviceStateTransition(uint16_t &controlword,
@@ -84,8 +136,8 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   OperatingMode sendOperatingMode_ = OperatingMode::CSP;
   OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
 
-  JointState receiveJointState_ {0, 0, 0, 0, 0};
-  JointTrajectory sendJointTrajectory_ {0, 0, 0};
+  JointState receiveJointState_{0, 0, 0, 0, 0};
+  JointTrajectory sendJointTrajectory_{0, 0, 0};
 
   HomingState sendHomingState_ = HomingState::UNKNOWN;
   HomingState receiveHomingState_ = HomingState::UNKNOWN;

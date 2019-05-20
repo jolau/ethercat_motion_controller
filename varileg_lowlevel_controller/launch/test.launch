@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <node name="varileg_lowlevel_controller_node" pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_node" output="screen">
-        <rosparam command="load" file="$(find varileg_lowlevel_controller)/config/config.yaml" />
-    </node>
-</launch>
