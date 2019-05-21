@@ -102,7 +102,6 @@ void EposEthercatSlave::writeOutbox() {
         double targetPositionRad = boost::algorithm::clamp(sendJointTrajectory_.position,
                                                            jointSpecifications_.minPositionLimit,
                                                            jointSpecifications_.maxPositionLimit);
-        MELO_INFO_THROTTLE_STREAM(1, name_ << ": targetPos: " << targetPositionRad);
 
         // apply home offset
         targetPositionRad -= jointSpecifications_.homeOffset;
