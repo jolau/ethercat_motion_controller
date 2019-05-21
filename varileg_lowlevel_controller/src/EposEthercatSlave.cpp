@@ -50,19 +50,24 @@ void EposEthercatSlave::readInbox() {
   receiveDeviceState_ = EposCommandLibrary::EposDeviceState::toDeviceState(txPdo.statusWord);
   receiveOperatingMode_ = EposCommandLibrary::EposOperatingMode::toOperatingMode(txPdo.operatingMode);
 
-  switch (receiveOperatingMode_) {
-    case OperatingMode::CSP: {
-      receiveJointState_.position = jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionActualValue) + jointSpecifications_.homeOffset;
-      receiveJointState_.primaryPosition = jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionPrimaryEncoder);
-      receiveJointState_.secondaryPosition = jointSpecifications_.secondaryEncoderConverter.toRad(txPdo.positionSecondaryEncoder);
-      receiveJointState_.velocity = txPdo.velocityActualValue;
-      receiveJointState_.torque = txPdo.torqueActualValue;
-      break;
+  if (isJointSpecificationsSet_) {
+    switch (receiveOperatingMode_) {
+      case OperatingMode::CSP: {
+        receiveJointState_.position =
+            jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionActualValue) + jointSpecifications_.homeOffset;
+        receiveJointState_.primaryPosition = jointSpecifications_.primaryEncoderConverter.toRad(txPdo.positionPrimaryEncoder);
+        receiveJointState_.secondaryPosition = jointSpecifications_.secondaryEncoderConverter.toRad(txPdo.positionSecondaryEncoder);
+        receiveJointState_.velocity = txPdo.velocityActualValue;
+        receiveJointState_.torque = txPdo.torqueActualValue;
+        break;
+      }
+      case OperatingMode::HMM: {
+        receiveHomingState_ = EposCommandLibrary::EposHomingState::toHomingState(txPdo.statusWord);
+        break;
+      }
     }
-    case OperatingMode::HMM: {
-      receiveHomingState_ = EposCommandLibrary::EposHomingState::toHomingState(txPdo.statusWord);
-      break;
-    }
+  } else {
+    MELO_WARN_THROTTLE_STREAM(1, "JointSpecifications are not set.")
   }
 }
 
@@ -74,42 +79,50 @@ void EposEthercatSlave::writeOutbox() {
   rxPdo.operatingMode = EposCommandLibrary::EposOperatingMode::toOperatingModeCommand(sendOperatingMode_);
 
   uint16_t controlWord = 0;
-  if(!jointSpecifications_.encoderCrosschecker.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
-    MELO_ERROR_THROTTLE_STREAM(1.0, name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: " << receiveJointState_.secondaryPosition);
-    sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
-    applyNextDeviceStateTransition(controlWord, receiveDeviceState_, DeviceState::STATE_SWITCHED_ON);
-    // TODO write error
-  } else {
+
+  if (isJointSpecificationsSet_) {
+    // apply encoder crosschecker
+    if (!jointSpecifications_.encoderCrosschecker.check(receiveJointState_.primaryPosition, receiveJointState_.secondaryPosition)) {
+      MELO_ERROR_THROTTLE_STREAM(1.0,
+                                 name_ << ": Encoder Crosscheck Failed with: Prim: " << receiveJointState_.primaryPosition << " Sec: "
+                                       << receiveJointState_.secondaryPosition);
+      sendDeviceState_ = DeviceState::STATE_SWITCHED_ON;
+      // TODO write error
+    }
+
     // latch to current state if state is not reachable
     if (!applyNextDeviceStateTransition(controlWord, receiveDeviceState_, sendDeviceState_)) {
       applyNextDeviceStateTransition(controlWord, receiveDeviceState_, receiveDeviceState_);
     }
-  }
 
-  switch (receiveOperatingMode_) {
-    case OperatingMode::CSP: {
-      MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is CSP.");
-      // apply position limits
-      double targetPositionRad = boost::algorithm::clamp(sendJointTrajectory_.position, jointSpecifications_.minPositionLimit, jointSpecifications_.maxPositionLimit);
-      MELO_INFO_THROTTLE_STREAM(1, name_ << ": targetPos: " << targetPositionRad);
+    switch (receiveOperatingMode_) {
+      case OperatingMode::CSP: {
+        MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is CSP.");
+        // apply position limits
+        double targetPositionRad = boost::algorithm::clamp(sendJointTrajectory_.position,
+                                                           jointSpecifications_.minPositionLimit,
+                                                           jointSpecifications_.maxPositionLimit);
+        MELO_INFO_THROTTLE_STREAM(1, name_ << ": targetPos: " << targetPositionRad);
 
-      // apply home offset
-      targetPositionRad -= jointSpecifications_.homeOffset;
+        // apply home offset
+        targetPositionRad -= jointSpecifications_.homeOffset;
 
-
-      rxPdo.targetPosition = jointSpecifications_.primaryEncoderConverter.toInc(targetPositionRad);
-      break;
+        rxPdo.targetPosition = jointSpecifications_.primaryEncoderConverter.toInc(targetPositionRad);
+        break;
+      }
+      case OperatingMode::HMM: {
+        MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is HMM.");
+        applyNextHomingStateTransition(controlWord, sendHomingState_);
+        break;
+      }
     }
-    case OperatingMode::HMM: {
-      MELO_DEBUG_THROTTLE_STREAM(1.0, "Current Mode is HMM.");
-      applyNextHomingStateTransition(controlWord, sendHomingState_);
-      break;
-    }
+  } else {
+    MELO_WARN_THROTTLE_STREAM(1, "JointSpecifications are not set.")
   }
 
   MELO_DEBUG_THROTTLE_STREAM(1.0, "Current state: " << Enum::toString(receiveDeviceState_) << " target state: "
-                                     << Enum::toString(sendDeviceState_) << " next controlword "
-                                     << std::bitset<16>(controlWord));
+                                                    << Enum::toString(sendDeviceState_) << " next controlword "
+                                                    << std::bitset<16>(controlWord));
   rxPdo.controlWord = controlWord;
 
   bus_->writeRxPdo(address_, rxPdo);
@@ -259,25 +272,27 @@ bool EposEthercatSlave::applyNextDeviceStateTransition(uint16_t &controlword,
   }
 
   MELO_ERROR_THROTTLE_STREAM(1.0,
-      "Target State: " << Enum::toString(targetState) << " can't be reached from current State: " << Enum::toString(currentState));
+                             "Target State: " << Enum::toString(targetState) << " can't be reached from current State: "
+                                              << Enum::toString(currentState));
   return false;
 }
 
 bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
                                                        const HomingState &targetState) {
-  switch(targetState) {
+  switch (targetState) {
     case HomingState::UNKNOWN:
       return false;
     case HomingState::HOMING_IN_PROGRESS:
       EposCommandLibrary::Controlwords::HOMING_OP_START.apply(controlword);
-    //  EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
+      //  EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
       return true;
     case HomingState::HOMING_INTERRUPTED:
       EposCommandLibrary::Controlwords::HOMING_HALT_ENABLE.apply(controlword);
       return true;
     case HomingState::HOMING_SUCCESSFUL:
-    case HomingState::HOMING_ERROR:
-      MELO_ERROR_THROTTLE_STREAM(1.0, "Target Homing State " << Enum::toString(targetState) << " cannot be reached by master!");
+    case HomingState::HOMING_ERROR: MELO_ERROR_THROTTLE_STREAM(1.0,
+                                                               "Target Homing State " << Enum::toString(targetState)
+                                                                                      << " cannot be reached by master!");
       return false;
   }
 }
@@ -336,11 +351,12 @@ void EposEthercatSlave::setJointSpecifications(JointSpecifications &jointSpecifi
   std::lock_guard<std::recursive_mutex> lock(mutex_);
 
   // set initial target position to home position, if not already set somehow else
-  if(sendJointTrajectory_.position == jointSpecifications_.homeOffset) {
+  if (sendJointTrajectory_.position == jointSpecifications_.homeOffset) {
     sendJointTrajectory_.position = jointSpecifications.homeOffset;
   }
 
   jointSpecifications_ = jointSpecifications;
+  isJointSpecificationsSet_ = true;
 }
 
 }

@@ -132,6 +132,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   EposStartupConfig eposStartupConfig_;
 
   JointSpecifications jointSpecifications_;
+  bool isJointSpecificationsSet_ = false;
 
   OperatingMode sendOperatingMode_ = OperatingMode::CSP;
   OperatingMode receiveOperatingMode_ = OperatingMode::UNKNOWN;
