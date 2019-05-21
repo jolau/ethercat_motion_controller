@@ -5,13 +5,13 @@
   <arg name="password"                  default="varileg"/>
   <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
   <arg name="motor_current"             default="2000"/>
-  <arg name="time_step"                 default="0.02"/>
+  <arg name="frequency"                 default="100"/>
 
   <!-- Launch the lowlevel controller: Setcap and ROS Node -->
   <node pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_setcap.sh" name="varileg_lowlevel_controller_setcap" output="$(arg output)"
         args="$(arg node_path)
               $(arg password)
-              $(arg time_step)
+              $(arg frequency)
               $(arg motor_current)" />
               <!--$(arg launch_prefix)-->
 </launch>

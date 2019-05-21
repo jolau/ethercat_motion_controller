@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="time_step"                 default="0.005"/>
+  <arg name="frequency"                 default="100"/>
   <arg name="motor_current"             default="2000"/>
   <!--<arg name="launch_prefix"             default="nice -n -10" />-->
   <!--<arg name="launch_prefix_gdb"         default="gdb -ex run &#45;&#45;args" />-->
@@ -9,7 +9,7 @@
   <node name="varileg_lowlevel_controller" pkg="varileg_lowlevel_controller" type="varileg_lowlevel_controller_node"  output="screen" >
     <rosparam command="load" file="$(find varileg_lowlevel_controller)/config/config.yaml" />
     <rosparam command="load" file="$(find varileg_lowlevel_controller)/config/joint_config.yaml" />
-    <param name="time_step" type="double" value="$(arg time_step)"/>
+    <param name="frequency" type="int" value="$(arg frequency)"/>
     <param name="motor_current" type="int" value="$(arg motor_current)"/>
   </node>
 </launch>

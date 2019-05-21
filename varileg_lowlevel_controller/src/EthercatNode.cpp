@@ -17,7 +17,9 @@ bool EthercatNode::init() {
   operatingModeServiceServer_ = advertiseService("set_operating_mode", "set_operating_mode", &EthercatNode::setOperatingModeCallback, this);
 
   constexpr int priority = 10;
-  double workerTimeStep = param<double>("time_step", 0.01);
+  double workerTimeStep = 1 / (double) param<int>("frequency", 100);
+
+  MELO_INFO_STREAM("workerTimeStep" << workerTimeStep);
 
   auto jointName2NodeIdMap =
       param<std::map<std::string, int>>("epos_mapping", {{"hip_left", 1}, {"hip_right", 2}, {"knee_left", 5}, {"knee_right", 3}});

@@ -13,4 +13,4 @@ echo ${2} | sudo -S setcap cap_net_raw+ep ${resolved_symlink}
 sudo ldconfig /opt/ros/$ROS_DISTRO/lib
 
 # launch the node
-roslaunch varileg_lowlevel_controller varileg_lowlevel_controller.launch time_step:="${3}" motor_current:="${4}"
+roslaunch varileg_lowlevel_controller varileg_lowlevel_controller.launch frequency:="${3}" motor_current:="${4}"
