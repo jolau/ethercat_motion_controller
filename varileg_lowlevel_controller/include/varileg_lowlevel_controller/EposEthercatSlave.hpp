@@ -98,7 +98,6 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   */
   const OperatingMode getReceiveOperatingMode() const;
 
-
   bool startup() override;
   void readInbox();
   void writeOutbox();
@@ -110,8 +109,25 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
    */
   uint8_t readNodeId();
 
+  /**
+   * Writes the interpolation time period for interpolating between position points in CSP mode. Has to be matched with the update loop.
+   * @param timePeriod in milliseconds
+   * @return true, if successful
+   */
   bool writeInterpolationTimePeriod(uint8_t timePeriod);
+
+  /**
+   * Write the motor current limit.
+   * @param motorCurrent in mA
+   * @return true, if successful
+   */
   bool writeMotorCurrentLimit(uint32_t motorCurrent);
+
+  /**
+   * Write the homing method to the EPOS.
+   * @param homingMethod
+   * @return true, if successful
+   */
   bool writeHomingMethod(const HomingMethod &homingMethod);
  private:
   template<typename Value>
@@ -120,10 +136,23 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   template<typename Value>
   bool readSDO(const SDO &sdo, Value &value, const bool completeAccess);
 
+  /**
+   * Generates the appropriate controlword to change a device state. All paths as specified in the EPOS firmware specifications are supported.
+   * @param controlword the controlword to be changed. Only the necessary bits are changed, all others are untouched.
+   * @param currentState current DeviceState of the EPOS
+   * @param targetState targeted DeviceState to be reached
+   * @return true, if a targeted DeviceState is reachable from the current DeviceState (namely a path is existent)
+   */
   static bool applyNextDeviceStateTransition(uint16_t &controlword,
                                              const DeviceState &currentState,
                                              const DeviceState &targetState);
 
+  /**
+   * Generates the appropriate controlword to change the homing state.
+   * @param controlword the controlword to be changed. Only the necessary bits are changed, all others are untouched.
+   * @param targetState targeted HomingState to reached
+   * @return true, if a targeted HomingState is reachable
+   */
   static bool applyNextHomingStateTransition(uint16_t &controlword,
                                              const HomingState &targetState);
 
@@ -146,8 +175,7 @@ class EposEthercatSlave : public soem_interface::EthercatSlaveBase {
   DeviceState sendDeviceState_ = DeviceState::STATE_SWITCH_ON_DISABLED;
   DeviceState receiveDeviceState_ = DeviceState::STATE_UNKNOWN;
 
-  // Bool indicating if slave and bus startup was called
-  bool isStartedUp_{false};
+  bool isStartedUp_{false}; ///< Bool indicating if slave and bus startup was called
 };
 
 using EposEthercatSlavePtr = std::shared_ptr<EposEthercatSlave>;

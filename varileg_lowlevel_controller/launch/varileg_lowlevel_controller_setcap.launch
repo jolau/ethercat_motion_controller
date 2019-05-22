@@ -3,7 +3,6 @@
   <arg name="output"                    default="screen"/>
   <arg name="node_path"                 default="$(find varileg_lowlevel_controller)/../../devel/lib/varileg_lowlevel_controller/varileg_lowlevel_controller_node"/>
   <arg name="password"                  default="varileg"/>
-  <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
   <arg name="motor_current"             default="2000"/>
   <arg name="frequency"                 default="100"/>
 
@@ -13,5 +12,4 @@
               $(arg password)
               $(arg frequency)
               $(arg motor_current)" />
-              <!--$(arg launch_prefix)-->
 </launch>

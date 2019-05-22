@@ -5,9 +5,12 @@ namespace varileg_lowlevel_controller {
 bool EthercatNode::init() {
   MELO_INFO("init called");
   constexpr unsigned int defaultQueueSize = 1;
+  constexpr int priority = 10;
+  double workerTimeStep = 1 / (double) param<int>("frequency", 100);
+
   //Publisher
-  jointStatesPublisher_ = advertise<varileg_msgs::ExtendedJointStates>("joint_states", "joint_states", 1);
-  deviceStatePublisher_ = advertise<varileg_msgs::ExtendedDeviceStates>("device_states", "device_states", 1);
+  jointStatesPublisher_ = advertise<varileg_msgs::ExtendedJointStates>("joint_states", "joint_states", defaultQueueSize);
+  deviceStatePublisher_ = advertise<varileg_msgs::ExtendedDeviceStates>("device_states", "device_states", defaultQueueSize);
 
   //Subscriber
   jointTrajectoriesSubscriber_ = subscribe("joint_trajectories", "joint_trajectories", defaultQueueSize,
@@ -16,23 +19,18 @@ bool EthercatNode::init() {
   deviceStateServiceServer_ = advertiseService("set_device_state", "set_device_state", &EthercatNode::setDeviceStateCallback, this);
   operatingModeServiceServer_ = advertiseService("set_operating_mode", "set_operating_mode", &EthercatNode::setOperatingModeCallback, this);
 
-  constexpr int priority = 10;
-  double workerTimeStep = 1 / (double) param<int>("frequency", 100);
-
-  MELO_INFO_STREAM("workerTimeStep" << workerTimeStep);
-
+  // setup joint mapping
   auto jointName2NodeIdMap =
       param<std::map<std::string, int>>("epos_mapping", {{"hip_left", 1}, {"hip_right", 2}, {"knee_left", 5}, {"knee_right", 3}});
   eposEthercatSlaveManager_->setJointName2NodeIdMap(jointName2NodeIdMap);
-  for (auto &pair : jointName2NodeIdMap) {
-    MELO_INFO_STREAM("NodeIDMap key: " << pair.first << " value: " << pair.second)
-  }
 
+  // setup buses and slaves
   EposStartupConfig eposStartupConfig;
   eposStartupConfig.interpolationTimePeriod = workerTimeStep * 1000 * param<double>("epos_interpolation_factor", 1);
   eposStartupConfig.motorCurrentLimit = param<int>("motor_current", 2000);
   setupBusManager(eposStartupConfig);
 
+  // startup all buses
   if (!busManager_->startupAllBuses(slavesOfBusesMap_, true)) {
     MELO_ERROR("Startup of all buses failed.");
     return false;
@@ -51,6 +49,7 @@ bool EthercatNode::init() {
   // worker has to be started as soon as possible as bus is started up
   addWorker("ethercatNode::updateWorker", workerTimeStep, &EthercatNode::update, this, priority);
 
+  // set joint specifications to all joints/slaves
   for (auto &pair : jointName2NodeIdMap) {
     std::string jointName = pair.first;
     eposEthercatSlaveManager_->setJointSpecifications(jointName, loadJointSpecifications(jointName));
@@ -100,7 +99,7 @@ void EthercatNode::setupBusManager(EposStartupConfig config) {
 void EthercatNode::preCleanup() {
   // this function is called when the node is requested to shut down, _before_ the ros spinners and workers are beeing stopped
   MELO_INFO("preCleanup called");
-  isStopped = true;
+  isStopped_ = true;
 }
 
 void EthercatNode::cleanup() {
@@ -190,13 +189,13 @@ void EthercatNode::homingCallback(actionlib::SimpleActionServer<varileg_msgs::Ho
 
   rate.sleep();
 
+  // start homing
   eposEthercatSlaveManager_->setHomingState(name, HomingState::HOMING_IN_PROGRESS);
 
   varileg_msgs::HomingFeedback homingFeedback;
-
   HomingState currentHomingState;
   do {
-    if (homingActionServer.isPreemptRequested() || isStopped) {
+    if (homingActionServer.isPreemptRequested() || isStopped_) {
       MELO_INFO_STREAM(name << "'s Homing Action: Preempted");
       homingActionServer.setPreempted();
       success = false;

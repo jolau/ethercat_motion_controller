@@ -14,7 +14,7 @@
 namespace varileg_lowlevel_controller {
 namespace examples {
 /**
- * ExampleNode used for testing. Works without slave manager and bus manager.
+ * ExampleNode used for testing. Works without bus manager.
  */
 class EposExampleNode : public any_node::Node {
  public:

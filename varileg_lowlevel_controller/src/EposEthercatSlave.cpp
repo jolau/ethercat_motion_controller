@@ -289,9 +289,8 @@ bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
       EposCommandLibrary::Controlwords::HOMING_HALT_ENABLE.apply(controlword);
       return true;
     case HomingState::HOMING_SUCCESSFUL:
-    case HomingState::HOMING_ERROR: MELO_ERROR_THROTTLE_STREAM(1.0,
-                                                               "Target Homing State " << Enum::toString(targetState)
-                                                                                      << " cannot be reached by master!");
+    case HomingState::HOMING_ERROR: MELO_ERROR_THROTTLE_STREAM(1.0, "Target Homing State " << Enum::toString(targetState)
+                                                                                           << " cannot be reached by master!");
       return false;
   }
 }
