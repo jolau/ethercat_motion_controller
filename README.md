@@ -108,11 +108,6 @@ Config file folder config:
 	Start homing of a joint. Needs to be in homing mode and enabled.
 
 
-## Bugs & Feature Requests
-
-Please report bugs and request features using the [Issue Tracker](https://github.com/ethz-asl/ros_best_practices/issues).
-
-
 [ROS]: http://www.ros.org
 [varileg_msgs/ExtendedJointTrajectories.msg]: https://gitlab.ethz.ch/varileg/varileg_msgs/blob/master/varileg_msgs/msg/ExtendedJointTrajectories.msg
 [varileg_msgs/ExtendedJointStates.msg]: https://gitlab.ethz.ch/varileg/varileg_msgs/blob/master/varileg_msgs/msg/ExtendedJointStates.msg
