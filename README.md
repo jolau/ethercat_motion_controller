@@ -10,7 +10,7 @@ This is a template: replace, remove, and add where required. Describe here what 
 
 The source code is released under a [BSD 3-Clause license](ros_package_template/LICENSE).
 
-**Author: Jonas Lauener, mail@jolau.ch<br />
+**Author: Jonas Lauener, mail@jolau.ch**
 
 The varileg\_lowlevel\_controller package has been tested under [ROS] Kinetic and Ubuntu 16.04. This is research code, expect that it changes often and any fitness for a particular purpose is disclaimed.
 
