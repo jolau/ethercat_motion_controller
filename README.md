@@ -14,9 +14,9 @@ The source code is released under a [BSD 3-Clause license](ros_package_template/
 
 The varileg\_lowlevel\_controller package has been tested under [ROS] Kinetic and Ubuntu 16.04. This is research code, expect that it changes often and any fitness for a particular purpose is disclaimed.
 
-![EtherCAT](https://esd.eu/sites/default/files/ethercat_logo_778x240.png)
+<img src="https://esd.eu/sites/default/files/ethercat_logo_778x240.png" alt="EtherCAT" width="300"/>
 
-![EPOS4 EtherCAT](https://www.maxonmotor.com/medias/sys_master/root/8830565941278/EPOS4-Compact-50-8-EtherCAT.jpg)
+<img src="https://www.maxonmotor.com/medias/sys_master/root/8830565941278/EPOS4-Compact-50-8-EtherCAT.jpg" alt="EPOS4 EtherCAT" width="300"/>
 
 ## Installation
 
@@ -37,9 +37,9 @@ To build from source, clone the latest version from this repository into your ca
 	cd ~/git
 	git clone https://github.com/ethz-asl/ros_package_template.git
 	cd ~/catkin_workspace/src
-	ln -s ~/git/varileg\_lowlevel\_controller
+	ln -s ~/git/varileg_lowlevel_controller
 	cd ../
-	catkin build varileg\_lowlevel\_controller
+	catkin build varileg_lowlevel_controller
 
 
 ## Usage
@@ -48,7 +48,7 @@ Describe the quickest way to run this software, for example:
 
 Run the main node with
 
-	roslaunch varileg\_lowlevel\_controller varileg\_lowlevel\_controller\_setcap.launch
+	roslaunch varileg_lowlevel_controller varileg_lowlevel_controller_setcap.launch
 
 ## Config files
 
@@ -69,14 +69,9 @@ Config file folder config:
      - **`frequency`** Frequency [Hz] of the update loop. Trajectory point have to come with same frequency. Default: `100`.
 
 
-* **epos_example_setcap.launch**: Starts a simple testing node, great for developing. Usage similiar to above.
+* **varileg\_lowlevel\_controller epos_example_setcap.launch**: Starts a simple testing node, great for developing. Usage similiar to above.
 
 ## Nodes
-
-### ros_package_template
-
-Reads temperature measurements and computed the average.
-
 
 #### Subscribed Topics
 
