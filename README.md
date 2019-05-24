@@ -2,9 +2,9 @@
 
 ## Overview
 
-This is a template: replace, remove, and add where required. Describe here what this package does and what it's meant for in a few sentences.
+Motion controller for Maxon EPOS4 over EtherCAT.
 
-**Keywords:** EtherCAT, EPOS4, motor controller
+**Keywords:** EtherCAT, EPOS4, motor controller, maxon
 
 ### License
 
