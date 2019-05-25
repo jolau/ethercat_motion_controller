@@ -60,7 +60,7 @@ Config file folder config:
 
 ## Launch files
 
-* **varileg\_lowlevel\_controller varileg\_lowlevel\_controller\_setcap.launch:** Start the main node with root rights by starting varileg\_lowlevel\_controller\_setcap.sh and then finally varileg\_lowlevel\_controller varileg\_lowlevel\_controller\_setcap.launch
+* **varileg\_lowlevel\_controller varileg\_lowlevel\_controller\_setcap.launch:** Start the main node with root rights by starting varileg\_lowlevel\_controller\_setcap.sh and then finally varileg\_lowlevel\_controller.launch
 
      Arguments:
 
