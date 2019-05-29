@@ -64,8 +64,8 @@ Config file folder config:
 
      Arguments:
 
-     - **`pasword`** Root password Default: `varileg`.
-     - **`motor_current`** Max. motor current in mA Default: `2000`.
+     - **`password`** Root password. Default: `varileg`.
+     - **`motor_current`** Max. motor current in mA. Default: `2000`.
      - **`frequency`** Frequency [Hz] of the update loop. Trajectory point have to come with same frequency. Default: `100`.
 
 
