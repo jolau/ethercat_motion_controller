@@ -283,7 +283,7 @@ bool EposEthercatSlave::applyNextHomingStateTransition(uint16_t &controlword,
       return false;
     case HomingState::HOMING_IN_PROGRESS:
       EposCommandLibrary::Controlwords::HOMING_OP_START.apply(controlword);
-      //  EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
+      EposCommandLibrary::Controlwords::HOMING_HALT_DISABLE.apply(controlword);
       return true;
     case HomingState::HOMING_INTERRUPTED:
       EposCommandLibrary::Controlwords::HOMING_HALT_ENABLE.apply(controlword);

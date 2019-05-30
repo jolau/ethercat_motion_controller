@@ -17,7 +17,7 @@ knee_left:
   primary_conversion_factor: 6413.94
   secondary_conversion_factor: -346321.156
   home_offset: -1.564
-  crosscheck_margin_positive: 0.05
+  crosscheck_margin_positive: 0.2
   crosscheck_margin_negative: 0.15
   min_position_limit: -2.109686427
   max_position_limit: -0.086748888
@@ -35,7 +35,7 @@ knee_right:
   primary_conversion_factor: -6418.40
   secondary_conversion_factor: 346321.156
   home_offset: -1.514
-  crosscheck_margin_positive: 0.05
+  crosscheck_margin_positive: 0.2
   crosscheck_margin_negative: 0.15
   min_position_limit: -2.093583697
   max_position_limit: -0.08700885
