@@ -8,11 +8,18 @@
 #include <soem_interface/EthercatBusManagerBase.hpp>
 
 namespace varileg_lowlevel_controller {
+/**
+ * Manages multiple buses
+ */
 class VarilegEthercatBusManager : public soem_interface::EthercatBusManagerBase {
  public:
   VarilegEthercatBusManager() = default;
   ~VarilegEthercatBusManager() = default;
 
+  /**
+   * Add bus to manager, stored by bus name
+   * @param bus to store
+   */
   void addEthercatBus(soem_interface::EthercatBusBasePtr bus);
 
  private:

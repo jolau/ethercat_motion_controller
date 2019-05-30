@@ -22,4 +22,4 @@ servers:
   set_device_state:
     service: set_device_state
   set_operating_mode:
-    set_operating_mode: set_device_state
+    service: set_operating_mode
