@@ -7,7 +7,7 @@ epos_mapping:
 hip_left:
   primary_conversion_factor: 4611.04
   secondary_conversion_factor: -346321.156
-  home_offset: 1.6
+  home_offset: 1.652
   crosscheck_margin_positive: 0.1
   crosscheck_margin_negative: 0.1
   min_position_limit: -0.262486554
