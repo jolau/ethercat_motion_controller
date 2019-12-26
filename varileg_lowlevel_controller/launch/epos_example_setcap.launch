@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="output"                    default="screen"/>
+  <arg name="node_path"                 default="$(find varileg_lowlevel_controller)/../../devel/lib/varileg_lowlevel_controller/epos_example_node"/>
+  <arg name="password"                  default="varileg"/>
+  <!--<arg name="launch_prefix"             default="'nice -n -10'" />-->
+  <arg name="time_step"                 default="0.01"/>
+
+  <!-- Launch the lowlevel controller: Setcap and ROS Node -->
+  <node pkg="varileg_lowlevel_controller" type="epos_example_setcap.sh" name="epos_example_setcap" output="$(arg output)"
+        args="$(arg node_path)
+              $(arg password)
+              $(arg time_step)" />
+              <!--$(arg launch_prefix)-->
+</launch>

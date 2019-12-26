@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<package format="2">
+
+  <name>varileg_lowlevel_controller</name>
+  <version>0.0.0</version>
+  <description>The varileg_lowlevel_controller package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="jonas.lauener@varileg-enhanced.ch">Jonas Lauener</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>any_node</depend>
+  <depend>message_logger</depend>
+  <depend>soem_interface</depend>
+  <depend>std_msgs</depend>
+  <depend>varileg_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>stopwatch</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

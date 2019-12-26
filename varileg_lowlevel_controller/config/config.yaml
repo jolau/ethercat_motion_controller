@@ -1,0 +1,25 @@
+left_bus_name: enp4s0
+right_bus_name: enp3s0
+
+publishers:
+  joint_states:
+    topic: joint_states
+    queue_size: 1
+    latch: false
+
+  device_states:
+    topic: device_states
+    queue_size: 1
+    latch: false
+
+subscribers:
+  joint_trajectories:
+    topic: /joint_trajectory
+    queue_size: 1
+    latch: false
+
+servers:
+  set_device_state:
+    service: set_device_state
+  set_operating_mode:
+    service: set_operating_mode
