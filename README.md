@@ -35,7 +35,7 @@ The varileg\_lowlevel\_controller package has been tested under [ROS] Kinetic an
 To build from source, clone the latest version from this repository into your catkin workspace and compile the package using
 
 	cd ~/git
-	git clone https://github.com/ethz-asl/ros_package_template.git
+	git clone https://github.com/jolau/ethercat_motion_controller
 	cd ~/catkin_workspace/src
 	ln -s ~/git/varileg_lowlevel_controller
 	cd ../
